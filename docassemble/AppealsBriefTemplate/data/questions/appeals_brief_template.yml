@@ -6,13 +6,7 @@ include:
   - docassemble.MassAppealsCourt:appeals-basic-questions.yml
 ---
 code: | 
-  appeals_court = macourts.matching_appeals_court("")
----
-modules:
-  - docassemble.MACourts.macourts
----
-objects:
-  - macourts: MACourtList.using(courts=['appeals_court'])  # this is for lookups
+  appeals_court = all_courts.matching_appeals_court("")
 ---
 metadata:
   title: |
