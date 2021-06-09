@@ -1,0 +1,448 @@
+---
+include:
+  - docassemble.AssemblyLine:al_package.yml
+  - docassemble.ALMassachusetts:al_massachusetts.yml
+  - docassemble.MassAccess:massaccess.yml
+  - docassemble.MassAppealsCourt:appeals-basic-questions.yml
+---
+code: | 
+  appeals_court = macourts.matching_appeals_court("")
+---
+modules:
+  - docassemble.MACourts.macourts
+---
+objects:
+  - macourts: MACourtList.using(courts=['appeals_court'])  # this is for lookups
+---
+metadata:
+  title: |
+    Appeals Court Brief Template
+  short title: |
+    Appeals Court Brief Template
+  tags:
+    - Other
+---
+mandatory: True
+comment: |
+  This contains metadata that will not be overwritten if this YAML file is included in another
+  file. Each file gets its own key in the interview_metadata dictionary.
+  Most keys are not currently used at runtime, other than "allowed courts".
+code: |
+  interview_metadata
+  if not defined("interview_metadata['appeals_brief_template']"):
+    interview_metadata.initializeObject("appeals_brief_template")
+    interview_metadata["appeals_brief_template"].update({
+      "al_weaver_version": "1.0.2",
+      "generated on": "2021-06-09",
+      "title": "Appeals Court Brief Template",
+      "short title": "Appeals Court Brief Template",
+      "description": "Use this interview to set up an appeals brief template",
+      "original_form": "https://www.mass.gov/service-details/appeals-court-briefs",
+      "allowed courts": [
+       "Boston Municipal Court",
+       "District Court",
+       "Superior Court",
+       "Housing Court",
+       "Probate and Family Court",
+       "Juvenile Court",
+       "Land Court" 
+      ],
+      "categories": [
+      ],        
+      "logic block variable": "interview_order_appeals_brief_template",
+      "attachment block variable": "appeals_brief_template_attachment",
+      "typical role": "unknown",
+    })
+---
+code: |
+  interview_short_title = "Set up an Appeals Court Brief"
+---
+code: |
+  al_form_type = 'appeal'
+---
+objects:
+  - users: ALPeopleList.using(there_are_any=True)
+  - attorneys: ALPeopleList
+  - other_parties: ALPeopleList.using(there_are_any=True)
+---
+sections:
+  - review_appeals_brief_template: Review your answers
+---
+#################### Interview order #####################
+comment: |
+  Controls order and branching logic for questions specific to this form
+id: interview_order_appeals_brief_template
+code: |
+  # Set the allowed courts for this interview
+  allowed_courts = interview_metadata["appeals_brief_template"]["allowed courts"]
+  nav.set_section('review_appeals_brief_template')
+  # Below sets the user_role by asking a question.
+  # You can set user_role directly instead to either 'plaintiff' or 'defendant'
+  user_ask_role
+  plaintiff_appeals_role
+  attorneys[0].id_number
+  argument_contents
+  set_progress(12.5)
+  statement_of_case
+  statement_of_facts
+  statement_of_issues
+  set_progress(25.0)
+  conclusion_contents
+  parties_to_be_served
+  method_of_service
+  set_progress(37.5)
+  defendants.gather()
+  users[0].phone_number
+  plaintiffs.gather()
+  set_progress(50.0)
+  users[0].address.address
+  trial_court.address.address
+  docket_number
+  set_progress(62.5)
+  users.gather()
+  set_parts(subtitle=str(users))
+  users[0].email
+  trial_court
+  interview_order_appeals_brief_template = True
+---
+###################### Main order ######################
+comment: |
+  This block includes the logic for standalone interviews.
+  Delete mandatory: True to include in another interview
+mandatory: True
+code: |
+  al_intro_screen
+  appeals_brief_template_intro
+  interview_order_appeals_brief_template
+  signature_date
+  # Save anonymized interview statistics (customize the saved data below)
+  store_variables_snapshot(data={'zip': users[0].address.zip})
+  appeals_brief_template_preview_question
+  basic_questions_signature_flow
+  appeals_brief_template_download
+---
+comment: |
+  This question is used to introduce your interview. Please customize
+id: Appeals_Court_Brief_Template
+continue button field: appeals_brief_template_intro
+question: |
+  Appeals Court Brief Template
+subquestion: |
+  Use this interview to set up an appeals brief template
+---
+id: Attorney Information
+question: |
+  Attorney Information
+fields:
+  - "Attorneys[0].id number": attorneys[0].id_number
+  - "Attorney firm": attorney_firm
+---
+id: Argument
+question: |
+  Argument
+subquestion: |
+  contains the legal argument that supports the issues you are raising on appeal. Your legal argument must be supported by legal authority such as appellate case law, statutes, and/or regulations
+fields:
+  - "Argument contents": argument_contents
+    input type: area
+  - "Argument subheading": argument_subheading
+---
+id: Statement of the case
+question: |
+  Statement of the case
+subquestion: |
+  relevant procedural history of what happened in the lower court in your case
+fields:
+  - "Statement of case": statement_of_case
+    input type: area
+---
+id: Statement of facts
+question: |
+  Statement of facts
+subquestion: |
+  description of the relevant facts of your case. Importantly, every fact included in this statement must have support in the record appendix and must be followed by a page reference to the appendix or transcript where that fact appears
+fields:
+  - "Statement of facts": statement_of_facts
+    input type: area
+---
+id: statement of the issue
+question: |
+  statement of the issue
+subquestion: |
+  issues raised in the brief and discussed in the argument section. The statement of issues is the first page of the substantive portion of your brief for purposes of the length limit.
+fields:
+  - "Statement of issues": statement_of_issues
+---
+id: Parties role
+question: |
+  Parties role
+subquestion: |
+  create logic
+fields:
+  - "Plaintiff appeals role": plaintiff_appeals_role
+  - "Defendant appeals role": defendant_appeals_role
+---
+id: Service information
+question: |
+  Service information
+subquestion: |
+  address etc
+fields:
+  - "Parties to be served": parties_to_be_served
+    input type: area
+---
+id: Method of service
+question: |
+  Method of service
+subquestion: |
+  drop down
+fields:
+  - "Method of service": method_of_service
+---
+id: conclusion
+question: |
+  conclusion
+subquestion: |
+  concise statement of the relief that you are asking the court to give you
+fields:
+  - "Conclusion contents": conclusion_contents
+    input type: area
+---
+id: preview appeals_brief_template
+question: |
+  Preview your form before you sign it
+subquestion: |
+  Here is a preview of the form you will sign on the next page.   
+  
+  ${ al_court_bundle.as_pdf(key='preview') }
+
+  Click the image to open it in a new tab. Click the "Make changes" button
+  to edit your answers.
+
+  ${ action_button_html(url_action('review_appeals_brief_template'), label='Make changes', color='info') }
+  
+  Remember to come back to this window to continue and sign your form.
+continue button field: appeals_brief_template_preview_question    
+---
+code: |
+  signature_fields = []
+---
+id: appeals brief template review screen
+event: review_appeals_brief_template
+question: |
+  Review your answers
+review:
+  - Edit: argument_contents
+    button: |
+      **Argument contents**:
+      > ${ single_paragraph(argument_contents) }
+  - Edit: attorneys.revisit
+    button: |
+      **attorneys**
+
+      % for item in attorneys:
+        * ${ item }
+      % endfor
+  - Edit: attorney_firm
+    button: |
+      **Attorney firm**:
+      ${ attorney_firm }
+  - Edit: plaintiff_appeals_role
+    button: |
+      **Plaintiff appeals role**:
+      ${ plaintiff_appeals_role }
+  - Edit: parties_to_be_served
+    button: |
+      **Parties to be served**:
+      > ${ single_paragraph(parties_to_be_served) }
+  - Edit: statement_of_case
+    button: |
+      **Statement of case**:
+      > ${ single_paragraph(statement_of_case) }
+  - Edit: statement_of_facts
+    button: |
+      **Statement of facts**:
+      > ${ single_paragraph(statement_of_facts) }
+  - Edit: statement_of_issues
+    button: |
+      **Statement of issues**:
+      ${ statement_of_issues }
+  - Edit: defendant_appeals_role
+    button: |
+      **Defendant appeals role**:
+      ${ defendant_appeals_role }
+  - Edit: method_of_service
+    button: |
+      **Method of service**:
+      ${ method_of_service }
+  - Edit: argument_subheading
+    button: |
+      **Argument subheading**:
+      ${ argument_subheading }
+  - Edit: conclusion_contents
+    button: |
+      **Conclusion contents**:
+      > ${ single_paragraph(conclusion_contents) }
+  - Edit: defendants.revisit
+    button: |
+      **defendants**
+
+      % for item in defendants:
+        * ${ item }
+      % endfor
+  - Edit: users.revisit
+    button: |
+      **users**
+
+      % for item in users:
+        * ${ item }
+      % endfor
+  - Edit: plaintiffs.revisit
+    button: |
+      **plaintiffs**
+
+      % for item in plaintiffs:
+        * ${ item }
+      % endfor
+  - Edit: trial_court
+    button: |
+      **trial_court**
+
+      % if defined("trial_court.address.county"):
+      * address: ${ trial_court.address.block() }
+      % endif
+      % if defined("trial_court.name.first"):
+      * name: ${ trial_court.name.full() }
+      % endif
+  - Edit: docket_number
+    button: |
+      **docket_number**:
+      ${ docket_number }
+---
+continue button field: attorneys.revisit
+question: |
+  Edit attorneys
+subquestion: |
+  ${ attorneys.table }
+
+  ${ attorneys.add_action() }
+---
+table: attorneys.table
+rows: attorneys
+columns:
+  - id_number: |
+      row_item.id_number if defined("row_item.id_number") else ""
+edit:
+  - id_number
+confirm: True
+
+---
+continue button field: defendants.revisit
+question: |
+  Edit defendants
+subquestion: |
+  ${ defendants.table }
+
+  ${ defendants.add_action() }
+---
+table: defendants.table
+rows: defendants
+columns:
+  - name: |
+      row_item.name.full() if defined("row_item.name.first") else ""
+edit:
+  - name.first
+confirm: True
+
+---
+continue button field: users.revisit
+question: |
+  Edit users
+subquestion: |
+  ${ users.table }
+
+  ${ users.add_action() }
+---
+table: users.table
+rows: users
+columns:
+  - phone_number: |
+      row_item.phone_number if defined("row_item.phone_number") else ""
+  - address: |
+      row_item.address.block() if defined("row_item.address.address") else ""
+  - name: |
+      row_item.name.full() if defined("row_item.name.first") else ""
+  - email: |
+      row_item.email if defined("row_item.email") else ""
+edit:
+  - phone_number
+  - address.address
+  - name.first
+  - email
+confirm: True
+
+---
+continue button field: plaintiffs.revisit
+question: |
+  Edit plaintiffs
+subquestion: |
+  ${ plaintiffs.table }
+
+  ${ plaintiffs.add_action() }
+---
+table: plaintiffs.table
+rows: plaintiffs
+columns:
+  - name: |
+      row_item.name.full() if defined("row_item.name.first") else ""
+edit:
+  - name.first
+confirm: True
+
+---
+id: download appeals_brief_template
+event: appeals_brief_template_download
+question: |
+  Your form is ready to download.
+subquestion: |
+  Thank you ${users}. Your form is ready to download and deliver.
+  
+  View, download and send your form below. Click the "Make changes" button to fix any mistakes.
+
+  ${ action_button_html(url_action('review_appeals_brief_template'), label='Make changes', color='info') }
+  
+  
+  ${ al_user_bundle.download_list_html() }
+  
+
+  ${ al_user_bundle.send_button_html(show_editable_checkbox=True) }
+
+progress: 100
+---
+objects:
+  - Post_interview_instructions: ALDocument.using(title="Instructions", filename="appeals_brief_template_next_steps.docx", enabled=True, has_addendum=False)
+  - appeals_brief_template_attachment: ALDocument.using(title="Use this interview to set up an appeals brief template", filename="appeals_brief_template.docx", enabled=True, has_addendum=False)
+  - Post_interview_instructions: ALDocument.using(title="Instructions", filename="appeals_brief_template_next_steps.docx", enabled=True, has_addendum=False)
+  - appeals_brief_template_attachment: ALDocument.using(title="Use this interview to set up an appeals brief template", filename="appeals_brief_template.docx", enabled=True, has_addendum=False)
+---
+objects:
+  - al_user_bundle: ALDocumentBundle.using(elements=[Post_interview_instructions,appeals_brief_template_attachment], filename="appeals_brief_template_package.pdf", title="All forms to download for your records")
+  - al_court_bundle: ALDocumentBundle.using(elements=[appeals_brief_template_attachment], filename="appeals_brief_template_package.pdf", title="All forms to download for your records")
+---
+attachments:
+  - name: Post interview instructions
+    filename: Post-interview-instructions     
+    variable name: Post_interview_instructions[i]        
+    docx template file: appeals_brief_template_next_steps.docx
+  - name: appeals brief template attachment
+    filename: appeals_brief_template     
+    variable name: appeals_brief_template_attachment[i]        
+    docx template file: appeals_brief_template.docx
+  - name: Post interview instructions
+    filename: Post-interview-instructions     
+    variable name: Post_interview_instructions[i]        
+    docx template file: appeals_brief_template_next_steps.docx
+  - name: appeals brief template attachment
+    filename: appeals_brief_template     
+    variable name: appeals_brief_template_attachment[i]        
+    docx template file: appeals_brief_template.docx
