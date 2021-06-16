@@ -55,12 +55,15 @@ code: |
   al_form_type = 'appeal'
 ---
 objects:
-  - users: ALPeopleList.using(there_are_any=True)
+  - users: | 
+      ALPeopleList.using(there_are_any=True, complete_attribute='complete')
   - attorneys: ALPeopleList
   - other_parties: | 
       ALPeopleList.using(there_are_any=True, complete_attribute='complete')
   - other_parties[i].attorneys: |       
-        ALPeopleList.using(object_type=Individual, there_is_another=False, complete_attribute='complete')
+        ALPeopleList.using(object_type=Individual, there_is_another=False, complete_attribute='complete') 
+  - users[i].attorneys: |
+      ALPeopleList.using(object_type=Individual, there_is_another=False, complete_attribute='complete') 
 ---
 ###auto_gather=False, target_number=1, gathered=True
 ---
@@ -242,7 +245,12 @@ code: |
     defendant_appeals_role = 'Appellee'
     plaintiff_appeals_role = 'Appellant'
 ---
-id: attorney are there any
+id: attorney for user
+question: |
+  Does ${ users[i] } have an attorney?
+yesno: users[i].attorneys.there_are_any
+---
+id: attorney for other parties
 question: |
   Does ${ other_parties[i] } have an attorney?
 yesno: other_parties[i].attorneys.there_are_any
@@ -258,30 +266,74 @@ code: |
 code: | 
   other_parties[i].name.first 
   other_parties[i].name.last
-  other_parties[i].attorneys.gather() 
+  other_parties[i].attorneys.gather()
+  if other_parties[i].attorneys.there_are_any == False: 
+    other_parties[i].address.address
   other_parties[i].complete = True
 ---
+code: | 
+  users[i].name.first 
+  users[i].name.last
+  users[i].attorneys.gather()
+  if users[i].attorneys.there_are_any == False: 
+    users[i].address.address
+  users[i].complete = True
+---
+code: |
+  users[i].attorneys[j].name.first
+  users[i].attorneys[j].name.last
+  users[i].attorneys[j].firm
+  users[i].attorneys[j].address.address
+  users[i].attorneys[j].there_is_another = False
+  users[i].attorneys[j].complete = True
+---
+id: other party attorney name
 question: |
   What is the name of
-  ${ other_parties[i].possessive(ordinal(j) + ' attorney') }?
+  ${ other_parties[i].possessive('attorney') }?
 fields:
   - First name: other_parties[i].attorneys[j].name.first
   - Last name: other_parties[i].attorneys[j].name.last
   - Firm name: other_parties[i].attorneys[j].firm
     required: False
-  
 ---
 id: other parties attorney address
 generic object: ALIndividual
 sets:
+  - other_parties[i].attorneys[j].email
   - other_parties[i].attorneys[j].address.address
   - other_parties[i].attorneys[j].address.city
   - other_parties[i].attorneys[j].address.zip
 question: |
   What is **${ other_parties[i].attorneys[j] }'s** address?
 fields:
+  - Email address: other_parties[i].attorneys[j].email
   - code: |
       other_parties[i].attorneys[j].address_fields()
+---
+id: users attorney name
+question: |
+  What is the name of
+  ${ users[i].possessive('attorney') }?
+fields:
+  - First name: users[i].attorneys[j].name.first
+  - Last name: users[i].attorneys[j].name.last
+  - Firm name: users[i].attorneys[j].firm
+    required: False
+---
+id: user  attorney address
+generic object: ALIndividual
+sets:
+  - users[i].attorneys[j].email
+  - users[i].attorneys[j].address.address
+  - users[i].attorneys[j].address.city
+  - users[i].attorneys[j].address.zip
+question: |
+  What is **${ users[i].attorneys[j] }'s** address?
+fields:
+  - Email address: users[i].attorneys[j].email
+  - code: |
+      users[i].attorneys[j].address_fields()
 ---
 id: parties to be served
 question: |
