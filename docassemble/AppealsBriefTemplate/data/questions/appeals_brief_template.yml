@@ -92,11 +92,9 @@ code: |
   
   set_progress(12.5)
   docket_number
-  users[0].email
-  users[0].address.address
-  users[0].phone_number
 
-  other_parties[0].address.address
+
+
   method_of_service
 
   set_progress(25.0)
@@ -111,6 +109,7 @@ code: |
   statement_of_facts
   statement_of_issues
   conclusion_contents
+  
   set_progress(50.0)
   
  
@@ -121,6 +120,8 @@ code: |
   set_parts(subtitle=str(users))
   
   trial_court
+  
+  
   interview_order_appeals_brief_template = True
 ---
 ###################### Main order ######################
@@ -262,8 +263,11 @@ code: |
   other_parties[i].attorneys[j].complete = True
 ---
 code: | 
-  other_parties[i].name.first 
-  other_parties[i].name.last
+  if other_parties[i].person_type_label == 'Person':
+    other_parties[i].name.first 
+    other_parties[i].name.last
+  else: 
+    other_parties[i].business_name_label
   other_parties[i].attorneys.gather()
   if other_parties[i].attorneys.there_are_any == False: 
     other_parties[i].address.address
@@ -275,6 +279,7 @@ code: |
   users[i].attorneys.gather()
   if users[i].attorneys.there_are_any == False: 
     users[i].address.address
+    users[i].mobile_number
   users[i].complete = True
 ---
 code: |
@@ -282,6 +287,7 @@ code: |
   users[i].attorneys[j].name.last
   users[i].attorneys[j].firm
   users[i].attorneys[j].address.address
+  users[i].attorneys[j].mobile_number
   users[i].attorneys[j].there_is_another = False
   users[i].attorneys[j].complete = True
 ---
@@ -309,6 +315,27 @@ fields:
   - code: |
       other_parties[i].attorneys[j].address_fields()
 ---
+id: user attorney contact information
+question: |
+  Contact information
+subquestion: |
+  Provide at least one other way for the court to reach you. 
+fields:
+  - Mobile number: users[i].attorneys[j].mobile_number
+    required: False
+  - Other phone number: users[i].attorneys[j].phone_number
+    required: False
+  - Other ways to reach you: users[i].attorneys[j].other_contact_method
+    input type: area
+    required: False
+    help: |
+      If you do not have a phone number or email the court can use, provide specific contact instructions. For example, use a friend's phone number. But the friend must be someone you can rely on to tell you the court is trying to reach you.
+#validation code: |
+ # if (not showifdef('users[i].attorneys[j].phone_number')) and \
+  #    (not showifdef('users[i].attorneys[j].mobile_number')) and \
+  #    (not showifdef('users[i].attorneys[j].other_contact_method')):
+   # validation_error(word("You need to provide at least one other contact method."))
+---
 id: users attorney name
 question: |
   % if pro_se_or_atty == 'attorney' and users[i] == users[0]: 
@@ -327,7 +354,7 @@ fields:
       code: | 
         pro_se_or_atty == 'attorney' and users[i] == users[0]
 ---
-id: user  attorney address
+id: user attorney address
 generic object: ALIndividual
 sets:
   - users[i].attorneys[j].email
@@ -342,6 +369,7 @@ question: |
   % endif
 fields:
   - Email address: users[i].attorneys[j].email
+    required: False
   - code: |
       users[i].attorneys[j].address_fields()
 ---
