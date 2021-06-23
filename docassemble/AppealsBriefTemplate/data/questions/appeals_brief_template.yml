@@ -57,7 +57,6 @@ code: |
 objects:
   - users: | 
       ALPeopleList.using(there_are_any=True, complete_attribute='complete')
-  - attorneys: ALPeopleList
   - other_parties: | 
       ALPeopleList.using(there_are_any=True, complete_attribute='complete')
   - other_parties[i].attorneys: |       
@@ -81,7 +80,10 @@ code: |
   # Below sets the user_role by asking a question.
   # You can set user_role directly instead to either 'plaintiff' or 'defendant'
   
-  pro_se_or_atty
+  if pro_se_or_atty == 'attorney': 
+    users[0].attorneys.there_are_any = True
+  else: 
+    users[0].attorneys.there_are_any = False
   user_ask_role
   users_appeals_role
   defendants.gather()
@@ -91,21 +93,18 @@ code: |
 
   
   set_progress(12.5)
+  
   docket_number
-
-
-
   method_of_service
 
   set_progress(25.0)
   
- 
-  parties_to_be_served
+  argument_contents
+  statement_of_case
+
   
   set_progress(37.5)
 
-  argument_contents
-  statement_of_case
   statement_of_facts
   statement_of_issues
   conclusion_contents
@@ -157,12 +156,6 @@ choices:
   - I am representing myself: prose
   - I am an attorney representing someone else: attorney
 ---
-id: attorney true 
-mandatory: True
-code: | 
-  if pro_se_or_atty == 'attorney': 
-    users[0].attorneys.there_are_any = True
----
 id: argument
 question: |
   Argument
@@ -210,18 +203,16 @@ fields:
     datatype: radio
     choices:
       - I want to reverse the decision of the Trial Court: appellant
-      - Reply to other party who wants to reverse the decision from the Trial Court: appellee  
+      - Prevent the other party from reversing the decision from the Trial Court: appellee
   - note: |
-      Okay, you are the **Appellant** in the appeals court. The other
-      side is the **Appellee**.
+      Okay, you are the **Appellant** in the appeals court. The other side is the **Appellee**.
     show if:
-      variable: user_ask_role
+      variable: users_appeals_role
       is: "appellant"
   - note: |
-      Okay, you are the **Appellee** in the appeals court. The other
-      side is the **Appellant**. 
+      Okay, you are the **Appellee** in the appeals court. The other side is the **Appellant**. 
     show if:
-      variable: user_ask_role
+      variable: users_appeals_role
       is: "appellee"
 help:
   label: |
@@ -229,6 +220,7 @@ help:
   content: |
     If you are the first person to file a form after trial court decision case,  you are the "Appellant".
     If you are responding to the other party, you are the "Appellee".
+
 ---
 code: |
   if users == plaintiffs and users_appeals_role == 'appellant':
@@ -271,15 +263,20 @@ code: |
   other_parties[i].attorneys.gather()
   if other_parties[i].attorneys.there_are_any == False: 
     other_parties[i].address.address
+  else: 
+    other_parties[0].address.address = ''
+    other_parties[0].address.city = '' 
+    other_parties[0].address.zip = '' 
   other_parties[i].complete = True
 ---
 code: | 
   users[i].name.first 
   users[i].name.last
-  users[i].attorneys.gather()
   if users[i].attorneys.there_are_any == False: 
     users[i].address.address
-    users[i].mobile_number
+    #users[i].mobile_number
+  else: 
+    users[i].attorneys.gather()
   users[i].complete = True
 ---
 code: |
@@ -299,7 +296,10 @@ fields:
   - First name: other_parties[i].attorneys[j].name.first
   - Last name: other_parties[i].attorneys[j].name.last
   - Firm name: other_parties[i].attorneys[j].firm
-    required: False
+  - BBO Number: other_parties[i].attorneys[j].id_number
+auto terms:
+  BBO number: |
+    Board of Bar Overseers, a regulatory board that tracks lawyers. All Massachusetts lawyers will have this number.
 ---
 id: other parties attorney address
 generic object: ALIndividual
@@ -348,11 +348,10 @@ fields:
   - First name: users[i].attorneys[j].name.first
   - Last name: users[i].attorneys[j].name.last
   - Firm name: users[i].attorneys[j].firm
-    required: False
-  - BBO Number: attorneys[0].id_number
-    show if:
-      code: | 
-        pro_se_or_atty == 'attorney' and users[i] == users[0]
+  - BBO Number: users[i].attorneys[j].id_number
+auto terms:
+  BBO number: |
+    Board of Bar Overseers, a regulatory board that tracks lawyers. All Massachusetts lawyers will have this number.
 ---
 id: user attorney address
 generic object: ALIndividual
@@ -386,24 +385,6 @@ question:  |
 fields:
   - code: |
       users[0].name_fields()
----
-id: parties to be served
-question: |
-  List the name and address or e-mail address of each attorney or self-represented party that you have served or will serve with copies of your docketing statement.
-subquestion: |
-  If you are serving more than one attorney or party, you may list more than one in the space provided.
-fields:
-  - no label: parties_to_be_served
-    input type: area 
-    rows: 6
----
-id: other parties attorney 
-#### placeholder question 
-question: | 
-  Does ${ other_parties[0].name } have an attorney?
-subquestion: | 
-  **Placeholder questions** Build out y/n for all parties on other side , collect attorney address for service if yes, loop for all other parties  
-yesno: placeholder_has_attorney
 ---
 id: method of service 
 question: |
@@ -471,10 +452,6 @@ review:
     button: |
       **Plaintiff appeals role**:
       ${ plaintiff_appeals_role }
-  - Edit: parties_to_be_served
-    button: |
-      **Parties to be served**:
-      > ${ single_paragraph(parties_to_be_served) }
   - Edit: statement_of_case
     button: |
       **Statement of case**:
