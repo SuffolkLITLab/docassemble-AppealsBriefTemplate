@@ -436,6 +436,20 @@ fields:
     input type: area
     required: False
 ---
+id: trial court division abbreviated
+question: | 
+  Select the **Trial Court** department and division where your case was heard.
+fields:
+  - no label: trial_court
+    datatype: object
+    choices: macourts.filter_courts(["Boston Municipal Court",
+      "District Court",
+      "Superior Court",
+      "Housing Court",
+      "Probate and Family Court",
+      "Juvenile Court",
+      "Land Court"])
+---
 id: affirmation and oath of no perjury
 question: |
   Signing Under Oath
@@ -672,6 +686,8 @@ objects:
   - appeals_brief_template_attachment: ALDocument.using(title="Use this interview to set up an appeals brief template", filename="appeals_brief_template.docx", enabled=True, has_addendum=False)
   - Post_interview_instructions: ALDocument.using(title="Instructions", filename="appeals_brief_template_next_steps.docx", enabled=True, has_addendum=False)
   - appeals_brief_template_attachment: ALDocument.using(title="Use this interview to set up an appeals brief template", filename="appeals_brief_template.docx", enabled=True, has_addendum=False)
+  - macourts: MACourtList.using(courts=['housing_courts','bmc','district_courts','superior_courts','land_court', 'juvenile_courts', 'probate_and_family_courts','appeals_court'])  # this is for lookups
+
 ---
 objects:
   - al_user_bundle: ALDocumentBundle.using(elements=[Post_interview_instructions,appeals_brief_template_attachment], filename="appeals_brief_template_package.pdf", title="All forms to download for your records")
