@@ -55,9 +55,16 @@ code: |
   al_form_type = 'appeal'
 ---
 objects:
-  - users: ALPeopleList.using(there_are_any=True)
-  - attorneys: ALPeopleList
-  - other_parties: ALPeopleList.using(there_are_any=True)
+  - users: | 
+      ALPeopleList.using(there_are_any=True, complete_attribute='complete')
+  - other_parties: | 
+      ALPeopleList.using(there_are_any=True, complete_attribute='complete')
+  - other_parties[i].attorneys: |       
+        ALPeopleList.using(object_type=Individual, there_is_another=False, complete_attribute='complete') 
+  - users[i].attorneys: |
+      ALPeopleList.using(object_type=Individual, there_is_another=False, complete_attribute='complete') 
+---
+###auto_gather=False, target_number=1, gathered=True
 ---
 sections:
   - review_appeals_brief_template: Review your answers
@@ -72,31 +79,50 @@ code: |
   nav.set_section('review_appeals_brief_template')
   # Below sets the user_role by asking a question.
   # You can set user_role directly instead to either 'plaintiff' or 'defendant'
+  
+  if pro_se_or_atty == 'attorney': 
+    users[0].attorneys.there_are_any = True
+  else: 
+    users[0].attorneys.there_are_any = False
   user_ask_role
-  plaintiff_appeals_role
-  attorneys[0].id_number
-  argument_contents
+  if users_appeals_role == 'appellant':
+    appellant_brief_or_reply
+  defendants.gather()
+  plaintiffs.gather()
+  other_parties.gather()
+  users.gather()
+
+  
   set_progress(12.5)
+  
+  docket_number
+  method_of_service
+
+  set_progress(25.0)
+  
+  argument_contents
+  summary_argument
   statement_of_case
+
+  
+  set_progress(37.5)
+
   statement_of_facts
   statement_of_issues
-  set_progress(25.0)
   conclusion_contents
-  parties_to_be_served
-  method_of_service
-  set_progress(37.5)
-  defendants.gather()
-  users[0].phone_number
-  plaintiffs.gather()
+  
   set_progress(50.0)
-  users[0].address.address
+  
+ 
   trial_court.address.address
-  docket_number
+  
   set_progress(62.5)
-  users.gather()
+  
   set_parts(subtitle=str(users))
-  users[0].email
+  
   trial_court
+  
+  
   interview_order_appeals_brief_template = True
 ---
 ###################### Main order ######################
@@ -112,6 +138,7 @@ code: |
   # Save anonymized interview statistics (customize the saved data below)
   store_variables_snapshot(data={'zip': users[0].address.zip})
   appeals_brief_template_preview_question
+  users[0].states_above_true
   basic_questions_signature_flow
   appeals_brief_template_download
 ---
@@ -124,83 +151,308 @@ question: |
 subquestion: |
   Use this interview to set up an appeals brief template
 ---
-id: Attorney Information
-question: |
-  Attorney Information
-fields:
-  - "Attorneys[0].id number": attorneys[0].id_number
-  - "Attorney firm": attorney_firm
+id: pro se or atty
+question: | 
+  Are you representing yourself or are you an attorney representing someone else? 
+field: pro_se_or_atty
+choices:
+  - I am representing myself: prose
+  - I am an attorney representing someone else: attorney
 ---
-id: Argument
+id: argument
 question: |
   Argument
 subquestion: |
   contains the legal argument that supports the issues you are raising on appeal. Your legal argument must be supported by legal authority such as appellate case law, statutes, and/or regulations
 fields:
+  - "Argument subheading": argument_subheading
+    required: False
   - "Argument contents": argument_contents
     input type: area
-  - "Argument subheading": argument_subheading
+    required: False
+---
+id: summary 
+question: |
+  Summary of the Argument
+subquestion: |
+  If your argument section that follows is longer than 20 pages (or 4,500 words if produced in a proportionally spaced font), you must include a summary of the arguments made later in the brief, with page references to the pages at which each argument appears in the brief
+fields:
+  - "Summary": summary_argument
+    required: False
 ---
 id: Statement of the case
 question: |
   Statement of the case
 subquestion: |
-  relevant procedural history of what happened in the lower court in your case
+  Relevant procedural history of what happened in the lower court in your case
 fields:
-  - "Statement of case": statement_of_case
+  - no label: statement_of_case
     input type: area
+    required: False
 ---
 id: Statement of facts
 question: |
   Statement of facts
 subquestion: |
-  description of the relevant facts of your case. Importantly, every fact included in this statement must have support in the record appendix and must be followed by a page reference to the appendix or transcript where that fact appears
+  Description of the relevant facts of your case. Importantly, every fact included in this statement must have support in the record appendix and must be followed by a page reference to the appendix or transcript where that fact appears
 fields:
-  - "Statement of facts": statement_of_facts
+  - no label: statement_of_facts
     input type: area
+    required: False
 ---
 id: statement of the issue
 question: |
-  statement of the issue
+  Statement of the issue
 subquestion: |
-  issues raised in the brief and discussed in the argument section. The statement of issues is the first page of the substantive portion of your brief for purposes of the length limit.
+  Issues raised in the brief and discussed in the argument section. The statement of issues is the first page of the substantive portion of your brief for purposes of the length limit.
 fields:
-  - "Statement of issues": statement_of_issues
----
-id: Parties role
-question: |
-  Parties role
-subquestion: |
-  create logic
-fields:
-  - "Plaintiff appeals role": plaintiff_appeals_role
-  - "Defendant appeals role": defendant_appeals_role
----
-id: Service information
-question: |
-  Service information
-subquestion: |
-  address etc
-fields:
-  - "Parties to be served": parties_to_be_served
+  - no label: statement_of_issues
     input type: area
+    required: False
 ---
-id: Method of service
+id: appeals role
 question: |
-  Method of service
+   What do you want to ask the Appeals court to do?
 subquestion: |
-  drop down
+  Do you want to ask the Appeals Court to reverse a Trial Court decision, or are you responding to the other party who asked the court to reverse the Trial Court?
 fields:
-  - "Method of service": method_of_service
+  - no label: users_appeals_role
+    datatype: radio
+    choices:
+      - I want to reverse the decision of the Trial Court: appellant
+      - Prevent the other party from reversing the Trial Court decision: appellee
+  - note: |
+      Okay, you are the **Appellant** in the appeals court. The other side is the **Appellee**.
+    show if:
+      variable: users_appeals_role
+      is: "appellant"
+  - note: |
+      Okay, you are the **Appellee** in the appeals court. The other side is the **Appellant**. 
+    show if:
+      variable: users_appeals_role
+      is: "appellee"
+help:
+  label: |
+    How do I know?
+  content: |
+    If you are the first person to file a form after trial court decision case,  you are the "Appellant".
+    If you are responding to the other party, you are the "Appellee".
+---
+id: reply or start 
+question: | 
+  Is this your initial brief or your reply to the appellee
+subquestion: | 
+  You are the appellant. If you filed your initial brief and are responding to the other side's brief then it is the reply 
+fields: 
+  - no label: appellant_brief_or_reply
+    datatype: radio
+    choices: 
+      - "Initial Brief": initial
+      - "Reply Brief": reply
+---
+code: |
+  if users == plaintiffs and users_appeals_role == 'appellant':
+    plaintiff_appeals_role = 'Appellant'
+    defendant_appeals_role = 'Appellee' 
+  elif users == plaintiffs and users_appeals_role == 'appellee':
+    plaintiff_appeals_role = 'Appellee'
+    defendant_appeals_role = 'Appellant'
+  elif users == defendants and users_appeals_role == 'appellant':
+    defendant_appeals_role = 'Appellant'
+    plaintiff_appeals_role = 'Appellee' 
+  elif users == defendants and users_appeals_role == 'appellee':
+    defendant_appeals_role = 'Appellee'
+    plaintiff_appeals_role = 'Appellant'
+---
+id: attorney for user
+question: |
+  Does ${ users[i] } have an attorney?
+yesno: users[i].attorneys.there_are_any
+---
+id: attorney for other parties
+question: |
+  Does ${ other_parties[i] } have an attorney?
+yesno: other_parties[i].attorneys.there_are_any
+---
+code: |
+  other_parties[i].attorneys[j].name.first
+  other_parties[i].attorneys[j].name.last
+  other_parties[i].attorneys[j].firm
+  other_parties[i].attorneys[j].address.address
+  other_parties[i].attorneys[j].there_is_another = False
+  other_parties[i].attorneys[j].complete = True
+---
+code: | 
+  if other_parties[i].person_type_label == 'Person':
+    other_parties[i].name.first 
+    other_parties[i].name.last
+  else: 
+    other_parties[i].business_name_label
+  other_parties[i].attorneys.gather()
+  if other_parties[i].attorneys.there_are_any == False: 
+    other_parties[i].address.address
+  else: 
+    other_parties[0].address.address = ''
+    other_parties[0].address.city = '' 
+    other_parties[0].address.zip = '' 
+  other_parties[i].complete = True
+---
+code: | 
+  users[i].name.first 
+  users[i].name.last
+  if users[i].attorneys.there_are_any == False: 
+    users[i].address.address
+    #users[i].mobile_number
+  else: 
+    users[i].attorneys.gather()
+  users[i].complete = True
+---
+code: |
+  users[i].attorneys[j].name.first
+  users[i].attorneys[j].name.last
+  users[i].attorneys[j].firm
+  users[i].attorneys[j].address.address
+  users[i].attorneys[j].mobile_number
+  users[i].attorneys[j].there_is_another = False
+  users[i].attorneys[j].complete = True
+---
+id: other party attorney name
+question: |
+  What is the name of
+  ${ other_parties[i].possessive('attorney') }?
+fields:
+  - First name: other_parties[i].attorneys[j].name.first
+  - Last name: other_parties[i].attorneys[j].name.last
+  - Firm name: other_parties[i].attorneys[j].firm
+  - BBO Number: other_parties[i].attorneys[j].id_number
+auto terms:
+  BBO number: |
+    Board of Bar Overseers, a regulatory board that tracks lawyers. All Massachusetts lawyers will have this number.
+---
+id: other parties attorney address
+generic object: ALIndividual
+sets:
+  - other_parties[i].attorneys[j].email
+  - other_parties[i].attorneys[j].address.address
+  - other_parties[i].attorneys[j].address.city
+  - other_parties[i].attorneys[j].address.zip
+question: |
+  What is **${ other_parties[i].attorneys[j] }'s** address?
+fields:
+  - Email address: other_parties[i].attorneys[j].email
+  - code: |
+      other_parties[i].attorneys[j].address_fields()
+---
+id: user attorney contact information
+question: |
+  Contact information
+subquestion: |
+  Provide at least one other way for the court to reach you. 
+fields:
+  - Mobile number: users[i].attorneys[j].mobile_number
+    required: False
+  - Other phone number: users[i].attorneys[j].phone_number
+    required: False
+  - Other ways to reach you: users[i].attorneys[j].other_contact_method
+    input type: area
+    required: False
+    help: |
+      If you do not have a phone number or email the court can use, provide specific contact instructions. For example, use a friend's phone number. But the friend must be someone you can rely on to tell you the court is trying to reach you.
+validation code: | 
+  if not users[i].attorneys[j].phone_number and not users[i].attorneys[j].mobile_number and not users[i].attorneys[j].other_contact_method:
+    validation_error("You need to provide at least one other contact method.")
+---
+id: users attorney name
+question: |
+  % if pro_se_or_atty == 'attorney' and users[i] == users[0]: 
+  What is your name?
+  % else: 
+  What is the name of
+  ${ users[i].possessive('attorney') }?  
+  % endif
+fields:
+  - First name: users[i].attorneys[j].name.first
+  - Last name: users[i].attorneys[j].name.last
+  - Firm name: users[i].attorneys[j].firm
+  - BBO Number: users[i].attorneys[j].id_number
+auto terms:
+  BBO number: |
+    Board of Bar Overseers, a regulatory board that tracks lawyers. All Massachusetts lawyers will have this number.
+---
+id: user attorney address
+generic object: ALIndividual
+sets:
+  - users[i].attorneys[j].email
+  - users[i].attorneys[j].address.address
+  - users[i].attorneys[j].address.city
+  - users[i].attorneys[j].address.zip
+question: |
+  % if pro_se_or_atty == 'attorney' and users[i] == users[0]:
+  What is your address?
+  % else: 
+  What is **${ users[i].attorneys[j] }'s** address?
+  % endif
+fields:
+  - Email address: users[i].attorneys[j].email
+    required: False
+  - code: |
+      users[i].attorneys[j].address_fields()
+---
+id: your name
+sets:
+    - users[0].name.first
+    - users[0].name.last
+question:  |
+  % if pro_se_or_atty == 'attorney': 
+  What is your client's name?
+  % else: 
+  What is your name?
+  % endif
+fields:
+  - code: |
+      users[0].name_fields()
+---
+id: method of service 
+question: |
+  How will you deliver the required copies of the motion, memorandum, and supporting materials to the plaintiffs' attorney(s)?
+subquestion: |
+  Select the method of delivery that you have used or will use to provide the required copies of the motion, memorandum and supporting materials to the other party(s) attorney(s).
+  
+  If the other party(s) do not have an attorney, you are required to serve a copy on the self-represented party.
+field: method_of_service 
+dropdown: 
+  - eFile and serve (efilema.com): eFile and servie (efilema.com)
+  - Email: email
+  - Mail: mail
+  - Hand delivery: hand delivery
 ---
 id: conclusion
 question: |
-  conclusion
+  Conclusion
 subquestion: |
-  concise statement of the relief that you are asking the court to give you
+  Concise statement of the relief that you are asking the court to give you
 fields:
-  - "Conclusion contents": conclusion_contents
+  - no label: conclusion_contents
     input type: area
+    required: False
+---
+id: affirmation and oath of no perjury
+question: |
+  Signing Under Oath
+subquestion: |
+  Your form must be signed under oath.
+  That means everything you say must be true as far as you know.
+  You may be punished by a judge if you intentionally
+  say something that is not true.
+fields:
+  - no label: users[0].states_above_true
+    datatype: checkboxes
+    minlength: 1
+    choices:
+      - I affirm that the answers I have given are true, under the pains and penalties of perjury: states_true
+    validation messages:
+      minlength: |
+        You cannot keep going unless you did your best to tell the truth.
 ---
 id: preview appeals_brief_template
 question: |
@@ -217,6 +469,12 @@ subquestion: |
   
   Remember to come back to this window to continue and sign your form.
 continue button field: appeals_brief_template_preview_question    
+---
+code: |
+  # This is a placeholder for the addresses that will be searched
+  # for matching address to court
+  # TODO: is there a better default? Probably very case specific
+  addresses_to_search = [users[0].address]
 ---
 code: |
   signature_fields = []
@@ -245,10 +503,6 @@ review:
     button: |
       **Plaintiff appeals role**:
       ${ plaintiff_appeals_role }
-  - Edit: parties_to_be_served
-    button: |
-      **Parties to be served**:
-      > ${ single_paragraph(parties_to_be_served) }
   - Edit: statement_of_case
     button: |
       **Statement of case**:
