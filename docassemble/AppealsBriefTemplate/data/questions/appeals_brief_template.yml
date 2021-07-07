@@ -85,7 +85,8 @@ code: |
   else: 
     users[0].attorneys.there_are_any = False
   user_ask_role
-  users_appeals_role
+  if users_appeals_role == 'appellant':
+    appellant_brief_or_reply
   defendants.gather()
   plaintiffs.gather()
   other_parties.gather()
@@ -100,6 +101,7 @@ code: |
   set_progress(25.0)
   
   argument_contents
+  summary_argument
   statement_of_case
 
   
@@ -136,6 +138,7 @@ code: |
   # Save anonymized interview statistics (customize the saved data below)
   store_variables_snapshot(data={'zip': users[0].address.zip})
   appeals_brief_template_preview_question
+  users[0].states_above_true
   basic_questions_signature_flow
   appeals_brief_template_download
 ---
@@ -163,35 +166,49 @@ subquestion: |
   contains the legal argument that supports the issues you are raising on appeal. Your legal argument must be supported by legal authority such as appellate case law, statutes, and/or regulations
 fields:
   - "Argument subheading": argument_subheading
+    required: False
   - "Argument contents": argument_contents
     input type: area
+    required: False
+---
+id: summary 
+question: |
+  Summary of the Argument
+subquestion: |
+  If your argument section that follows is longer than 20 pages (or 4,500 words if produced in a proportionally spaced font), you must include a summary of the arguments made later in the brief, with page references to the pages at which each argument appears in the brief
+fields:
+  - "Summary": summary_argument
+    required: False
 ---
 id: Statement of the case
 question: |
   Statement of the case
 subquestion: |
-  relevant procedural history of what happened in the lower court in your case
+  Relevant procedural history of what happened in the lower court in your case
 fields:
   - no label: statement_of_case
     input type: area
+    required: False
 ---
 id: Statement of facts
 question: |
   Statement of facts
 subquestion: |
-  description of the relevant facts of your case. Importantly, every fact included in this statement must have support in the record appendix and must be followed by a page reference to the appendix or transcript where that fact appears
+  Description of the relevant facts of your case. Importantly, every fact included in this statement must have support in the record appendix and must be followed by a page reference to the appendix or transcript where that fact appears
 fields:
   - no label: statement_of_facts
     input type: area
+    required: False
 ---
 id: statement of the issue
 question: |
   Statement of the issue
 subquestion: |
-  issues raised in the brief and discussed in the argument section. The statement of issues is the first page of the substantive portion of your brief for purposes of the length limit.
+  Issues raised in the brief and discussed in the argument section. The statement of issues is the first page of the substantive portion of your brief for purposes of the length limit.
 fields:
   - no label: statement_of_issues
     input type: area
+    required: False
 ---
 id: appeals role
 question: |
@@ -203,7 +220,7 @@ fields:
     datatype: radio
     choices:
       - I want to reverse the decision of the Trial Court: appellant
-      - Prevent the other party from reversing the decision from the Trial Court: appellee
+      - Prevent the other party from reversing the Trial Court decision: appellee
   - note: |
       Okay, you are the **Appellant** in the appeals court. The other side is the **Appellee**.
     show if:
@@ -220,7 +237,18 @@ help:
   content: |
     If you are the first person to file a form after trial court decision case,  you are the "Appellant".
     If you are responding to the other party, you are the "Appellee".
-
+---
+id: reply or start 
+question: | 
+  Is this your initial brief or your reply to the appellee
+subquestion: | 
+  You are the appellant. If you filed your initial brief and are responding to the other side's brief then it is the reply 
+fields: 
+  - no label: appellant_brief_or_reply
+    datatype: radio
+    choices: 
+      - "Initial Brief": initial
+      - "Reply Brief": reply
 ---
 code: |
   if users == plaintiffs and users_appeals_role == 'appellant':
@@ -330,11 +358,9 @@ fields:
     required: False
     help: |
       If you do not have a phone number or email the court can use, provide specific contact instructions. For example, use a friend's phone number. But the friend must be someone you can rely on to tell you the court is trying to reach you.
-#validation code: |
- # if (not showifdef('users[i].attorneys[j].phone_number')) and \
-  #    (not showifdef('users[i].attorneys[j].mobile_number')) and \
-  #    (not showifdef('users[i].attorneys[j].other_contact_method')):
-   # validation_error(word("You need to provide at least one other contact method."))
+validation code: | 
+  if not users[i].attorneys[j].phone_number and not users[i].attorneys[j].mobile_number and not users[i].attorneys[j].other_contact_method:
+    validation_error("You need to provide at least one other contact method.")
 ---
 id: users attorney name
 question: |
@@ -402,12 +428,31 @@ dropdown:
 ---
 id: conclusion
 question: |
-  conclusion
+  Conclusion
 subquestion: |
-  concise statement of the relief that you are asking the court to give you
+  Concise statement of the relief that you are asking the court to give you
 fields:
   - no label: conclusion_contents
     input type: area
+    required: False
+---
+id: affirmation and oath of no perjury
+question: |
+  Signing Under Oath
+subquestion: |
+  Your form must be signed under oath.
+  That means everything you say must be true as far as you know.
+  You may be punished by a judge if you intentionally
+  say something that is not true.
+fields:
+  - no label: users[0].states_above_true
+    datatype: checkboxes
+    minlength: 1
+    choices:
+      - I affirm that the answers I have given are true, under the pains and penalties of perjury: states_true
+    validation messages:
+      minlength: |
+        You cannot keep going unless you did your best to tell the truth.
 ---
 id: preview appeals_brief_template
 question: |
@@ -424,6 +469,12 @@ subquestion: |
   
   Remember to come back to this window to continue and sign your form.
 continue button field: appeals_brief_template_preview_question    
+---
+code: |
+  # This is a placeholder for the addresses that will be searched
+  # for matching address to court
+  # TODO: is there a better default? Probably very case specific
+  addresses_to_search = [users[0].address]
 ---
 code: |
   signature_fields = []
