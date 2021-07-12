@@ -113,14 +113,12 @@ code: |
   
   set_progress(50.0)
   
- 
-  trial_court.address.address
+  trial_court
+  #trial_court.address.address
   
   set_progress(62.5)
   
   set_parts(subtitle=str(users))
-  
-  trial_court
   
   
   interview_order_appeals_brief_template = True
@@ -279,6 +277,7 @@ code: |
   other_parties[i].attorneys[j].name.last
   other_parties[i].attorneys[j].firm
   other_parties[i].attorneys[j].address.address
+  other_parties[i].attorneys[j].mobile_number
   other_parties[i].attorneys[j].there_is_another = False
   other_parties[i].attorneys[j].complete = True
 ---
@@ -302,7 +301,7 @@ code: |
   users[i].name.last
   if users[i].attorneys.there_are_any == False: 
     users[i].address.address
-    #users[i].mobile_number
+    users[i].mobile_number
   else: 
     users[i].attorneys.gather()
   users[i].complete = True
@@ -315,6 +314,43 @@ code: |
   users[i].attorneys[j].mobile_number
   users[i].attorneys[j].there_is_another = False
   users[i].attorneys[j].complete = True
+---
+id: users i contact information
+question: |
+  Contact information for ${users[i] }
+subquestion: |
+  Provide at least one other way for the court to reach ${users[i] }. 
+fields:
+  - Mobile number: users[i].mobile_number
+    required: False
+  - Other phone number: users[i].phone_number
+    required: False
+  - Other ways to reach you: users[i].other_contact_method
+    input type: area
+    required: False
+    help: |
+      If you do not have a phone number or email the court can use, provide specific contact instructions. For example, use a friend's phone number.
+      But the friend must be someone you can rely on to tell you the court is trying to reach you.
+validation code: | 
+  if not users[i].phone_number and not users[i].mobile_number and not users[i].other_contact_method:
+    validation_error("You need to provide at least one other contact method.")
+---
+id: otherparties i contact information
+question: |
+  Contact information for ${other_parties[i] }
+subquestion: |
+  Provide at least one other way for the court to reach ${other_parties[i] }. 
+fields:
+  - Mobile number: other_parties[i].mobile_number
+    required: False
+  - Other phone number: other_parties[i].phone_number
+    required: False
+  - Other ways to reach you: other_parties[i].other_contact_method
+    input type: area
+    required: False
+    help: |
+      If you do not have a phone number or email the court can use, provide specific contact instructions. For example, use a friend's phone number.
+      But the friend must be someone you can rely on to tell you the court is trying to reach you.
 ---
 id: other party attorney name
 question: |
@@ -360,6 +396,25 @@ fields:
       If you do not have a phone number or email the court can use, provide specific contact instructions. For example, use a friend's phone number. But the friend must be someone you can rely on to tell you the court is trying to reach you.
 validation code: | 
   if not users[i].attorneys[j].phone_number and not users[i].attorneys[j].mobile_number and not users[i].attorneys[j].other_contact_method:
+    validation_error("You need to provide at least one other contact method.")
+---
+id: other party attorney contact information
+question: |
+  Contact information for ${ other_parties[i].attorneys[j] }
+subquestion: |
+  Provide at least one other way for the court to reach ${ other_parties[i].attorneys[j] }. 
+fields:
+  - Mobile number: other_parties[i].attorneys[j].mobile_number
+    required: False
+  - Other phone number: other_parties[i].attorneys[j].phone_number
+    required: False
+  - Other ways to reach you: other_parties[i].attorneys[j].other_contact_method
+    input type: area
+    required: False
+    help: |
+      If you do not have a phone number or email the court can use, provide specific contact instructions. For example, use a friend's phone number. But the friend must be someone you can rely on to tell you the court is trying to reach you.
+validation code: | 
+  if not other_parties[i].attorneys[j].phone_number and not other_parties[i].attorneys[j].mobile_number and not other_parties[i].attorneys[j].other_contact_method:
     validation_error("You need to provide at least one other contact method.")
 ---
 id: users attorney name
@@ -441,14 +496,10 @@ question: |
   Select the **Trial Court** department and division where your case was heard.
 fields:
   - no label: trial_court
-    datatype: object
-    choices: macourts.filter_courts(["Boston Municipal Court",
-      "District Court",
-      "Superior Court",
-      "Housing Court",
-      "Probate and Family Court",
-      "Juvenile Court",
-      "Land Court"])
+    datatype: combobox
+    code: |
+      sorted((set([str(y) for y in all_courts.filter_courts(["District Court","Boston Municipal Court", "Probate and Family Court","Housing Court", "Superior Court", "Juvenile Court", "Land Court"])])))  
+    hint: To select one start typing or look through the list
 ---
 id: affirmation and oath of no perjury
 question: |
@@ -488,7 +539,7 @@ code: |
   # This is a placeholder for the addresses that will be searched
   # for matching address to court
   # TODO: is there a better default? Probably very case specific
-  addresses_to_search = [users[0].address]
+  addresses_to_search = [showifdef('users[0].address')]
 ---
 code: |
   signature_fields = []
@@ -509,10 +560,10 @@ review:
       % for item in attorneys:
         * ${ item }
       % endfor
-  - Edit: attorney_firm
+  - Edit: other_parties[i].attorneys[j].firm
     button: |
       **Attorney firm**:
-      ${ attorney_firm }
+      ${ other_parties[i].attorneys[j].firm }
   - Edit: plaintiff_appeals_role
     button: |
       **Plaintiff appeals role**:
