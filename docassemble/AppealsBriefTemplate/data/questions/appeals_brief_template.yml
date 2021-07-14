@@ -175,7 +175,8 @@ question: |
 subquestion: |
   If your argument section that follows is longer than 20 pages (or 4,500 words if produced in a proportionally spaced font), you must include a summary of the arguments made later in the brief, with page references to the pages at which each argument appears in the brief
 fields:
-  - "Summary": summary_argument
+  - no label: summary_argument
+    input type: area
     required: False
 ---
 id: Statement of the case
@@ -272,6 +273,7 @@ question: |
   Does ${ other_parties[i] } have an attorney?
 yesno: other_parties[i].attorneys.there_are_any
 ---
+id: other party attorney gather
 code: |
   other_parties[i].attorneys[j].name.first
   other_parties[i].attorneys[j].name.last
@@ -281,6 +283,7 @@ code: |
   other_parties[i].attorneys[j].there_is_another = False
   other_parties[i].attorneys[j].complete = True
 ---
+id: other party gather
 code: | 
   if other_parties[i].person_type_label == 'Person':
     other_parties[i].name.first 
@@ -290,20 +293,19 @@ code: |
   other_parties[i].attorneys.gather()
   if other_parties[i].attorneys.there_are_any == False: 
     other_parties[i].address.address
-  else: 
-    other_parties[0].address.address = ''
-    other_parties[0].address.city = '' 
-    other_parties[0].address.zip = '' 
+    other_parties[i].mobile_number
   other_parties[i].complete = True
 ---
+id: users gather
 code: | 
   users[i].name.first 
   users[i].name.last
+  if users[i] == users[0]: 
+    users[0].address.address    
+  users[i].attorneys.gather()
   if users[i].attorneys.there_are_any == False: 
     users[i].address.address
     users[i].mobile_number
-  else: 
-    users[i].attorneys.gather()
   users[i].complete = True
 ---
 code: |
@@ -376,14 +378,16 @@ question: |
   What is **${ other_parties[i].attorneys[j] }'s** address?
 fields:
   - Email address: other_parties[i].attorneys[j].email
+    datatype: email
+    required: false
   - code: |
       other_parties[i].attorneys[j].address_fields()
 ---
 id: user attorney contact information
 question: |
-  Contact information
+  Contact information for ${ users[i].attorneys[j].name} 
 subquestion: |
-  Provide at least one other way for the court to reach you. 
+  Provide at least one other way for the court to reach ${ users[i].attorneys[j].name}.
 fields:
   - Mobile number: users[i].attorneys[j].mobile_number
     required: False
@@ -467,6 +471,30 @@ fields:
   - code: |
       users[0].name_fields()
 ---
+id: appeals user address
+question: |
+  % if pro_se_or_atty == 'attorney': 
+  What is your client's address?
+  % else: 
+  What is your address?
+  % endif
+subquestion: |
+  % if pro_se_or_atty == 'prose':  
+  List the address where you want the court to mail papers to you.
+  % endif
+fields:
+  - Email address: users[0].email    
+    datatype: email
+    required: False
+  - Street address: users[0].address.address
+    address autocomplete: True
+  - Unit: users[0].address.unit
+    required: False
+  - City: users[0].address.city
+  - State: users[0].address.state
+    code: states_list()
+  - Zip: users[0].address.zip 
+---
 id: method of service 
 question: |
   How will you deliver the required copies of the motion, memorandum, and supporting materials to the plaintiffs' attorney(s)?
@@ -491,15 +519,16 @@ fields:
     input type: area
     required: False
 ---
-id: trial court division abbreviated
-question: | 
-  Select the **Trial Court** department and division where your case was heard.
-fields:
-  - no label: trial_court
-    datatype: combobox
-    code: |
-      sorted((set([str(y) for y in all_courts.filter_courts(["District Court","Boston Municipal Court", "Probate and Family Court","Housing Court", "Superior Court", "Juvenile Court", "Land Court"])])))  
-    hint: To select one start typing or look through the list
+# BRING THIS BACK IN IF ATTORNEY IS FILING OUT FORM, USE NARROWED LIST IF PRO SE
+#id: trial court division abbreviated
+#question: | 
+#  Select the **Trial Court** department and division where your case was heard.
+#fields:
+#  - no label: trial_court
+#    datatype: combobox
+#    code: |
+#      sorted((set([str(y) for y in all_courts.filter_courts(["District Court","Boston Municipal Court", "Probate and Family Court","Housing Court", "Superior Court", "Juvenile Court", "Land Court"])])))  
+#    hint: To select one start typing or look through the list
 ---
 id: affirmation and oath of no perjury
 question: |
