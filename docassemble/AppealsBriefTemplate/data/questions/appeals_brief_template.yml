@@ -347,7 +347,7 @@ fields:
     required: False
   - Other phone number: other_parties[i].phone_number
     required: False
-  - Other ways to reach you: other_parties[i].other_contact_method
+  - Other ways to reach ${other_parties[i] }: other_parties[i].other_contact_method
     input type: area
     required: False
     help: |
@@ -385,15 +385,15 @@ fields:
 ---
 id: user attorney contact information
 question: |
-  Contact information for ${ users[i].attorneys[j].name} 
+  Contact information for ${ users[i].attorneys[j].name }
 subquestion: |
-  Provide at least one other way for the court to reach ${ users[i].attorneys[j].name}.
+  Provide at least one other way for the court to reach ${ users[i].attorneys[j].name }.
 fields:
   - Mobile number: users[i].attorneys[j].mobile_number
     required: False
   - Other phone number: users[i].attorneys[j].phone_number
     required: False
-  - Other ways to reach you: users[i].attorneys[j].other_contact_method
+  - Other ways to reach ${ users[i].attorneys[j].name }: users[i].attorneys[j].other_contact_method
     input type: area
     required: False
     help: |
@@ -412,7 +412,7 @@ fields:
     required: False
   - Other phone number: other_parties[i].attorneys[j].phone_number
     required: False
-  - Other ways to reach you: other_parties[i].attorneys[j].other_contact_method
+  - Other ways to reach ${ other_parties[i].attorneys[j] }: other_parties[i].attorneys[j].other_contact_method
     input type: area
     required: False
     help: |
@@ -497,9 +497,9 @@ fields:
 ---
 id: method of service 
 question: |
-  How will you deliver the required copies of the motion, memorandum, and supporting materials to the plaintiffs' attorney(s)?
+  How will you deliver the required copies of the motion, memorandum, and supporting materials to the other party(s) or their attorney(s)?
 subquestion: |
-  Select the method of delivery that you have used or will use to provide the required copies of the motion, memorandum and supporting materials to the other party(s) attorney(s).
+  Select the method of delivery that you have used or will use to provide the required copies of the motion, memorandum and supporting materials to the other party(s) or their attorney(s).
   
   If the other party(s) do not have an attorney, you are required to serve a copy on the self-represented party.
 field: method_of_service 
@@ -568,7 +568,7 @@ code: |
   # This is a placeholder for the addresses that will be searched
   # for matching address to court
   # TODO: is there a better default? Probably very case specific
-  addresses_to_search = [showifdef('users[0].address')]
+  addresses_to_search = [('users[0].address')]
 ---
 code: |
   signature_fields = []
