@@ -113,14 +113,12 @@ code: |
   
   set_progress(50.0)
   
- 
-  trial_court.address.address
+  trial_court
+  #trial_court.address.address
   
   set_progress(62.5)
   
   set_parts(subtitle=str(users))
-  
-  trial_court
   
   
   interview_order_appeals_brief_template = True
@@ -177,7 +175,8 @@ question: |
 subquestion: |
   If your argument section that follows is longer than 20 pages (or 4,500 words if produced in a proportionally spaced font), you must include a summary of the arguments made later in the brief, with page references to the pages at which each argument appears in the brief
 fields:
-  - "Summary": summary_argument
+  - no label: summary_argument
+    input type: area
     required: False
 ---
 id: Statement of the case
@@ -274,14 +273,17 @@ question: |
   Does ${ other_parties[i] } have an attorney?
 yesno: other_parties[i].attorneys.there_are_any
 ---
+id: other party attorney gather
 code: |
   other_parties[i].attorneys[j].name.first
   other_parties[i].attorneys[j].name.last
   other_parties[i].attorneys[j].firm
   other_parties[i].attorneys[j].address.address
+  other_parties[i].attorneys[j].mobile_number
   other_parties[i].attorneys[j].there_is_another = False
   other_parties[i].attorneys[j].complete = True
 ---
+id: other party gather
 code: | 
   if other_parties[i].person_type_label == 'Person':
     other_parties[i].name.first 
@@ -291,20 +293,19 @@ code: |
   other_parties[i].attorneys.gather()
   if other_parties[i].attorneys.there_are_any == False: 
     other_parties[i].address.address
-  else: 
-    other_parties[0].address.address = ''
-    other_parties[0].address.city = '' 
-    other_parties[0].address.zip = '' 
+    other_parties[i].mobile_number
   other_parties[i].complete = True
 ---
+id: users gather
 code: | 
   users[i].name.first 
   users[i].name.last
+  if users[i] == users[0]: 
+    users[0].address.address    
+  users[i].attorneys.gather()
   if users[i].attorneys.there_are_any == False: 
     users[i].address.address
-    #users[i].mobile_number
-  else: 
-    users[i].attorneys.gather()
+    users[i].mobile_number
   users[i].complete = True
 ---
 code: |
@@ -315,6 +316,43 @@ code: |
   users[i].attorneys[j].mobile_number
   users[i].attorneys[j].there_is_another = False
   users[i].attorneys[j].complete = True
+---
+id: users i contact information
+question: |
+  Contact information for ${users[i] }
+subquestion: |
+  Provide at least one other way for the court to reach ${users[i] }. 
+fields:
+  - Mobile number: users[i].mobile_number
+    required: False
+  - Other phone number: users[i].phone_number
+    required: False
+  - Other ways to reach you: users[i].other_contact_method
+    input type: area
+    required: False
+    help: |
+      If you do not have a phone number or email the court can use, provide specific contact instructions. For example, use a friend's phone number.
+      But the friend must be someone you can rely on to tell you the court is trying to reach you.
+validation code: | 
+  if not users[i].phone_number and not users[i].mobile_number and not users[i].other_contact_method:
+    validation_error("You need to provide at least one other contact method.")
+---
+id: otherparties i contact information
+question: |
+  Contact information for ${other_parties[i] }
+subquestion: |
+  Provide at least one other way for the court to reach ${other_parties[i] }. 
+fields:
+  - Mobile number: other_parties[i].mobile_number
+    required: False
+  - Other phone number: other_parties[i].phone_number
+    required: False
+  - Other ways to reach ${other_parties[i] }: other_parties[i].other_contact_method
+    input type: area
+    required: False
+    help: |
+      If you do not have a phone number or email the court can use, provide specific contact instructions. For example, use a friend's phone number.
+      But the friend must be someone you can rely on to tell you the court is trying to reach you.
 ---
 id: other party attorney name
 question: |
@@ -340,26 +378,47 @@ question: |
   What is **${ other_parties[i].attorneys[j] }'s** address?
 fields:
   - Email address: other_parties[i].attorneys[j].email
+    datatype: email
+    required: false
   - code: |
       other_parties[i].attorneys[j].address_fields()
 ---
 id: user attorney contact information
 question: |
-  Contact information
+  Contact information for ${ users[i].attorneys[j].name }
 subquestion: |
-  Provide at least one other way for the court to reach you. 
+  Provide at least one other way for the court to reach ${ users[i].attorneys[j].name }.
 fields:
   - Mobile number: users[i].attorneys[j].mobile_number
     required: False
   - Other phone number: users[i].attorneys[j].phone_number
     required: False
-  - Other ways to reach you: users[i].attorneys[j].other_contact_method
+  - Other ways to reach ${ users[i].attorneys[j].name }: users[i].attorneys[j].other_contact_method
     input type: area
     required: False
     help: |
       If you do not have a phone number or email the court can use, provide specific contact instructions. For example, use a friend's phone number. But the friend must be someone you can rely on to tell you the court is trying to reach you.
 validation code: | 
   if not users[i].attorneys[j].phone_number and not users[i].attorneys[j].mobile_number and not users[i].attorneys[j].other_contact_method:
+    validation_error("You need to provide at least one other contact method.")
+---
+id: other party attorney contact information
+question: |
+  Contact information for ${ other_parties[i].attorneys[j] }
+subquestion: |
+  Provide at least one other way for the court to reach ${ other_parties[i].attorneys[j] }. 
+fields:
+  - Mobile number: other_parties[i].attorneys[j].mobile_number
+    required: False
+  - Other phone number: other_parties[i].attorneys[j].phone_number
+    required: False
+  - Other ways to reach ${ other_parties[i].attorneys[j] }: other_parties[i].attorneys[j].other_contact_method
+    input type: area
+    required: False
+    help: |
+      If you do not have a phone number or email the court can use, provide specific contact instructions. For example, use a friend's phone number. But the friend must be someone you can rely on to tell you the court is trying to reach you.
+validation code: | 
+  if not other_parties[i].attorneys[j].phone_number and not other_parties[i].attorneys[j].mobile_number and not other_parties[i].attorneys[j].other_contact_method:
     validation_error("You need to provide at least one other contact method.")
 ---
 id: users attorney name
@@ -412,11 +471,35 @@ fields:
   - code: |
       users[0].name_fields()
 ---
+id: appeals user address
+question: |
+  % if pro_se_or_atty == 'attorney': 
+  What is your client's address?
+  % else: 
+  What is your address?
+  % endif
+subquestion: |
+  % if pro_se_or_atty == 'prose':  
+  List the address where you want the court to mail papers to you.
+  % endif
+fields:
+  - Email address: users[0].email    
+    datatype: email
+    required: False
+  - Street address: users[0].address.address
+    address autocomplete: True
+  - Unit: users[0].address.unit
+    required: False
+  - City: users[0].address.city
+  - State: users[0].address.state
+    code: states_list()
+  - Zip: users[0].address.zip 
+---
 id: method of service 
 question: |
-  How will you deliver the required copies of the motion, memorandum, and supporting materials to the plaintiffs' attorney(s)?
+  How will you deliver the required copies of the motion, memorandum, and supporting materials to the other party(s) or their attorney(s)?
 subquestion: |
-  Select the method of delivery that you have used or will use to provide the required copies of the motion, memorandum and supporting materials to the other party(s) attorney(s).
+  Select the method of delivery that you have used or will use to provide the required copies of the motion, memorandum and supporting materials to the other party(s) or their attorney(s).
   
   If the other party(s) do not have an attorney, you are required to serve a copy on the self-represented party.
 field: method_of_service 
@@ -436,19 +519,16 @@ fields:
     input type: area
     required: False
 ---
-id: trial court division abbreviated
-question: | 
-  Select the **Trial Court** department and division where your case was heard.
-fields:
-  - no label: trial_court
-    datatype: object
-    choices: macourts.filter_courts(["Boston Municipal Court",
-      "District Court",
-      "Superior Court",
-      "Housing Court",
-      "Probate and Family Court",
-      "Juvenile Court",
-      "Land Court"])
+# BRING THIS BACK IN IF ATTORNEY IS FILING OUT FORM, USE NARROWED LIST IF PRO SE
+#id: trial court division abbreviated
+#question: | 
+#  Select the **Trial Court** department and division where your case was heard.
+#fields:
+#  - no label: trial_court
+#    datatype: combobox
+#    code: |
+#      sorted((set([str(y) for y in all_courts.filter_courts(["District Court","Boston Municipal Court", "Probate and Family Court","Housing Court", "Superior Court", "Juvenile Court", "Land Court"])])))  
+#    hint: To select one start typing or look through the list
 ---
 id: affirmation and oath of no perjury
 question: |
@@ -488,7 +568,7 @@ code: |
   # This is a placeholder for the addresses that will be searched
   # for matching address to court
   # TODO: is there a better default? Probably very case specific
-  addresses_to_search = [users[0].address]
+  addresses_to_search = [('users[0].address')]
 ---
 code: |
   signature_fields = []
@@ -509,10 +589,10 @@ review:
       % for item in attorneys:
         * ${ item }
       % endfor
-  - Edit: attorney_firm
+  - Edit: other_parties[i].attorneys[j].firm
     button: |
       **Attorney firm**:
-      ${ attorney_firm }
+      ${ other_parties[i].attorneys[j].firm }
   - Edit: plaintiff_appeals_role
     button: |
       **Plaintiff appeals role**:

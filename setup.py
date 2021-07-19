@@ -53,7 +53,7 @@ setup(name='docassemble.AppealsBriefTemplate',
       url='https://courtformsonline.org',
       packages=find_packages(),
       namespace_packages=['docassemble'],
-      install_requires=['docassemble.ALMassachusetts>=0.0.7', 'docassemble.AssemblyLine>=2.1.2', 'docassemble.MassAccess>=0.0.3.1'],
+      install_requires=['docassemble.ALMassachusetts>=0.0.7', 'docassemble.AssemblyLine>=2.1.4', 'docassemble.MassAccess>=0.0.3.1'],
       zip_safe=False,
       package_data=find_package_data(where='docassemble/AppealsBriefTemplate/', package='docassemble.AppealsBriefTemplate'),
      )
