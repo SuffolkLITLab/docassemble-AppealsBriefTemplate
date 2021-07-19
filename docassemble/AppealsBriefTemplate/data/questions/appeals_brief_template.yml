@@ -69,7 +69,7 @@ objects:
 sections:
   - review_appeals_brief_template: Review your answers
 ---
-#################### Interview order #####################
+#################### Interview order ####################
 comment: |
   Controls order and branching logic for questions specific to this form
 id: interview_order_appeals_brief_template
