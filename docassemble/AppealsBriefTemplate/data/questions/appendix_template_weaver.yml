@@ -3,7 +3,6 @@ include:
   - docassemble.AssemblyLine:al_package.yml
   - docassemble.ALMassachusetts:al_massachusetts.yml
   - docassemble.MassAccess:massaccess.yml
-  - appeals_brief_template.yml
 ---
 metadata:
   title: |
@@ -63,40 +62,17 @@ code: |
   nav.set_section('review_appendix_template_weaver')
   # Below sets the user_role by asking a question.
   # You can set user_role directly instead to either 'plaintiff' or 'defendant'
-  user_ask_role
+
   Appeals_Brief_Appendix
-  plaintiff_appeals_role
-  defendant_appeals_role
+  dummy_upload
+
   set_progress(16.67)
-  users.gather()
-  set_parts(subtitle=str(users))
-  defendants.gather()
-  users[0].phone_number
+
   set_progress(33.33)
-  users[0].address.address
-  users[0].email
-  plaintiffs.gather()
+
   set_progress(50.0)
-  users[0].attorneys[0]
-  docket_number
-  trial_court.address.address
+
   interview_order_appendix_template_weaver = True
----
-###################### Main order ######################
-comment: |
-  This block includes the logic for standalone interviews.
-  Delete mandatory: True to include in another interview
-mandatory: True
-code: |
-  al_intro_screen
-  appendix_template_weaver_intro
-  interview_order_appendix_template_weaver
-  signature_date
-  # Save anonymized interview statistics (customize the saved data below)
-  store_variables_snapshot(data={'zip': users[0].address.zip})
-  appendix_template_weaver_preview_question
-  basic_questions_signature_flow
-  appendix_template_weaver_download
 ---
 comment: |
   This question is used to introduce your interview. Please customize
@@ -114,171 +90,14 @@ subquestion: |
   The record appendix, or appendix, is the collection of those portions of the trial court's record (e.g., papers, exhibits, and/or transcripts) relevant to the issues, facts, and arguments set forth in your brief.
 continue button field: Appeals_Brief_Appendix
 ---
-id: Plaintiff Appeals Role
+id: dummy upload question 
 question: |
-  Plaintiff Appeals Role
-yesno: plaintiff_appeals_role
----
-id: Defendant Appeals Role
-question: |
-  Defendant Appeals Role
-yesno: defendant_appeals_role
----
-id: Attorney s ID number
-question: |
-  Attorney's ID number
+  Upload your first document 
+subquestion: |
+  This is a placeholder 
 fields:
-  - "Users[0].attorneys[0].id number": users[0].attorneys[0].id_number
----
-id: preview appendix_template_weaver
-question: |
-  Preview your form before you sign it
-subquestion: |
-  Here is a preview of the form you will sign on the next page.   
-  
-  ${ al_court_bundle.as_pdf(key='preview') }
-
-  Click the image to open it in a new tab. Click the "Make changes" button
-  to edit your answers.
-
-  ${ action_button_html(url_action('review_appendix_template_weaver'), label='Make changes', color='info') }
-  
-  Remember to come back to this window to continue and sign your form.
-continue button field: appendix_template_weaver_preview_question    
----
-code: |
-  signature_fields = []
----
-id: appendix template weaver review screen
-event: review_appendix_template_weaver
-question: |
-  Review your answers
-review:
-  - Edit: plaintiff_appeals_role
-    button: |
-      **Plaintiff appeals role**:
-      ${ word(yesno(plaintiff_appeals_role)) }
-  - Edit: defendant_appeals_role
-    button: |
-      **Defendant appeals role**:
-      ${ word(yesno(defendant_appeals_role)) }
-  - Edit: users.revisit
-    button: |
-      **users**
-
-      % for item in users:
-        * ${ item }
-      % endfor
-  - Edit: defendants.revisit
-    button: |
-      **defendants**
-
-      % for item in defendants:
-        * ${ item }
-      % endfor
-  - Edit: plaintiffs.revisit
-    button: |
-      **plaintiffs**
-
-      % for item in plaintiffs:
-        * ${ item }
-      % endfor
-  - Edit: docket_number
-    button: |
-      **docket_number**:
-      ${ docket_number }
-  - Edit: trial_court
-    button: |
-      **trial_court**
-
-      % if defined("trial_court.address.county"):
-      * address: ${ trial_court.address.block() }
-      % endif
----
-continue button field: users.revisit
-question: |
-  Edit users
-subquestion: |
-  ${ users.table }
-
-  ${ users.add_action() }
----
-table: users.table
-rows: users
-columns:
-  - attorneys[0]: |
-      row_item.attorneys[0] if defined("row_item.attorneys[0].id_number") else ""
-  - name: |
-      row_item.name.full() if defined("row_item.name.first") else ""
-  - phone_number: |
-      row_item.phone_number if defined("row_item.phone_number") else ""
-  - address: |
-      row_item.address.block() if defined("row_item.address.address") else ""
-  - email: |
-      row_item.email if defined("row_item.email") else ""
-edit:
-  - attorneys[0].id_number
-  - name.first
-  - phone_number
-  - address.address
-  - email
-confirm: True
-
----
-continue button field: defendants.revisit
-question: |
-  Edit defendants
-subquestion: |
-  ${ defendants.table }
-
-  ${ defendants.add_action() }
----
-table: defendants.table
-rows: defendants
-columns:
-  - name: |
-      row_item.name.full() if defined("row_item.name.first") else ""
-edit:
-  - name.first
-confirm: True
-
----
-continue button field: plaintiffs.revisit
-question: |
-  Edit plaintiffs
-subquestion: |
-  ${ plaintiffs.table }
-
-  ${ plaintiffs.add_action() }
----
-table: plaintiffs.table
-rows: plaintiffs
-columns:
-  - name: |
-      row_item.name.full() if defined("row_item.name.first") else ""
-edit:
-  - name.first
-confirm: True
-
----
-id: download appendix_template_weaver
-event: appendix_template_weaver_download
-question: |
-  Your form is ready to download.
-subquestion: |
-  Thank you ${users}. Your form is ready to download and deliver.
-  
-  View, download and send your form below. Click the "Make changes" button to fix any mistakes.
-
-  ${ action_button_html(url_action('review_appendix_template_weaver'), label='Make changes', color='info') }
-  
-  
-  ${ al_user_bundle.download_list_html() }
-  
-
-  ${ al_user_bundle.send_button_html(show_editable_checkbox=True) }
-
-progress: 100
+  - File: dummy_upload
+    datatype: file
 ---
 objects:
   - Post_interview_instructions: ALDocument.using(title="Instructions", filename="appendix_template_weaver_next_steps.docx", enabled=True, has_addendum=False)

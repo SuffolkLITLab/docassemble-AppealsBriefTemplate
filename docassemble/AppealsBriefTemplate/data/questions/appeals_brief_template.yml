@@ -4,6 +4,7 @@ include:
   - docassemble.ALMassachusetts:al_massachusetts.yml
   - docassemble.MassAccess:massaccess.yml
   - docassemble.MassAppealsCourt:appeals-basic-questions.yml
+  - appendix_template_weaver.yml
 ---
 code: | 
   appeals_court = all_courts.matching_appeals_court("")
@@ -131,6 +132,7 @@ mandatory: True
 code: |
   al_intro_screen
   appeals_brief_template_intro
+  interview_order_appendix_template_weaver
   interview_order_appeals_brief_template
   signature_date
   # Save anonymized interview statistics (customize the saved data below)
@@ -568,7 +570,7 @@ code: |
   # This is a placeholder for the addresses that will be searched
   # for matching address to court
   # TODO: is there a better default? Probably very case specific
-  addresses_to_search = [('users[0].address')]
+  addresses_to_search = [(users[0].address)]
 ---
 code: |
   signature_fields = []
@@ -770,8 +772,8 @@ objects:
 
 ---
 objects:
-  - al_user_bundle: ALDocumentBundle.using(elements=[Post_interview_instructions,appeals_brief_template_attachment], filename="appeals_brief_template_package.pdf", title="All forms to download for your records")
-  - al_court_bundle: ALDocumentBundle.using(elements=[appeals_brief_template_attachment], filename="appeals_brief_template_package.pdf", title="All forms to download for your records")
+  - al_user_bundle: ALDocumentBundle.using(elements=[Post_interview_instructions,appeals_brief_template_attachment, appendix_template_weaver_attachment], filename="appeals_brief_template_package.pdf", title="All forms to download for your records")
+  - al_court_bundle: ALDocumentBundle.using(elements=[appeals_brief_template_attachment, appendix_template_weaver_attachment], filename="appeals_brief_template_package.pdf", title="All forms to download for your records")
 ---
 attachments:
   - name: Post interview instructions

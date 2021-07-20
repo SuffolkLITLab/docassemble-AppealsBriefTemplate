@@ -45,7 +45,7 @@ def find_package_data(where='.', package='', exclude=standard_exclude, exclude_d
 setup(name='docassemble.AppealsBriefTemplate',
       version='1.0',
       description=('Appeals Court Brief Template'),
-      long_description='# docassemble.AppealsBriefTemplate\r\n\r\nAppeals Court Brief Template\r\n\r\n## Author\r\n\r\nauthor@example.com\r\n\r\n',
+      long_description='# docassemble.AppealsBriefTemplate\r\n\r\nAppeals Court Brief Template\r\n\r\n## Author\r\n\r\nauthor@example.com\r\n\r\n## Information \r\n\r\nRun only from the "appeals_brief_template" yml',
       long_description_content_type='text/markdown',
       author='Aubrie Souza',
       author_email='asouza@su.suffolk.edu',
