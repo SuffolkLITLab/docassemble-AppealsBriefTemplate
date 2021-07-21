@@ -30,7 +30,7 @@ code: |
       "generated on": "2021-06-09",
       "title": "Appeals Court Brief Template",
       "short title": "Appeals Court Brief Template",
-      "description": "Use this interview to set up an appeals brief template",
+      "description": "Appeals Court Brief Template",
       "original_form": "https://www.mass.gov/service-details/appeals-court-briefs",
       "allowed courts": [
        "Boston Municipal Court",
@@ -568,7 +568,7 @@ code: |
   # This is a placeholder for the addresses that will be searched
   # for matching address to court
   # TODO: is there a better default? Probably very case specific
-  addresses_to_search = [('users[0].address')]
+  addresses_to_search = [(users[0].address)]
 ---
 code: |
   signature_fields = []
