@@ -65,6 +65,8 @@ code: |
 
   Appeals_Brief_Appendix
   dummy_upload
+  impound_upload
+  suppdocs_upload
 
   set_progress(16.67)
 
@@ -83,20 +85,38 @@ question: |
 subquestion: |
   Appendix template labeled
 ---
-id: Appeals Brief Appendix
+id: Appeals Brief Appendix #put link to lower docket
 question: |
   Appeals Brief Appendix
 subquestion: |
   The record appendix, or appendix, is the collection of those portions of the trial court's record (e.g., papers, exhibits, and/or transcripts) relevant to the issues, facts, and arguments set forth in your brief.
 continue button field: Appeals_Brief_Appendix
 ---
-id: dummy upload question 
+id: Complaint or indictment
 question: |
-  Upload your first document 
+  What was the first thing filed in the lower trial court to start this case?
 subquestion: |
-  This is a placeholder 
+  If this was a civil case it should be a complaint or petition, while if this is a criminal case it should be an indictment. 
 fields:
   - File: dummy_upload
+    datatype: file
+---
+id: Impounded docs
+question: |
+  Was the whole case or part of the case impounded in the lower trial court?
+subquestion: |
+  You will need to indicat whether this case has an impounded documents because a seperate filing will need to be filed with the court. 
+fields:
+  - File: impound_upload
+    datatype: file
+---
+id: Supporting documents
+question: |
+  Upload any documents you filed in the lower trial court to help support your statements of fact.
+subquestion: |
+  You can only submit documents that were previously filed in the lower trial court.
+fields:
+  - File: suppdocs_upload
     datatype: file
 ---
 objects:
