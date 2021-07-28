@@ -64,9 +64,13 @@ code: |
   # You can set user_role directly instead to either 'plaintiff' or 'defendant'
 
   Appeals_Brief_Appendix
-  dummy_upload
-  impound_upload
-  suppdocs_upload
+  docket_upload
+  complaint_upload
+  brief_attachments_upload
+  arguments_upload
+  memo_upload
+  orders_upload
+  notice_appeal_upload
 
   set_progress(16.67)
 
@@ -92,31 +96,63 @@ subquestion: |
   The record appendix, or appendix, is the collection of those portions of the trial court's record (e.g., papers, exhibits, and/or transcripts) relevant to the issues, facts, and arguments set forth in your brief.
 continue button field: Appeals_Brief_Appendix
 ---
+id: Docket
+question: |
+  Please upload the lower trial court docket here.
+fields:
+  - File: docket_upload
+    datatype: file
+---
 id: Complaint or indictment
 question: |
   What was the first thing filed in the lower trial court to start this case?
 subquestion: |
   If this was a civil case it should be a complaint or petition, while if this is a criminal case it should be an indictment. 
 fields:
-  - File: dummy_upload
+  - File: complaint_upload
     datatype: file
 ---
-id: Impounded docs
-question: |
-  Was the whole case or part of the case impounded in the lower trial court?
-subquestion: |
-  You will need to indicat whether this case has an impounded documents because a seperate filing will need to be filed with the court. 
-fields:
-  - File: impound_upload
-    datatype: file
----
-id: Supporting documents
+id: Brief attachments
 question: |
   Upload any documents you filed in the lower trial court to help support your statements of fact.
 subquestion: |
   You can only submit documents that were previously filed in the lower trial court.
 fields:
-  - File: suppdocs_upload
+  - File: brief_attachments_upload
+    datatype: file
+---
+id: Documents making argument on appeal
+question: |
+  Upload any documents you filed in the lower trial court to help support your issue which is to be argued on appeal.
+subquestion: |
+  You can only submit documents that were previously filed in the lower trial court.
+fields:
+  - File: arguments_upload
+    datatype: file
+---
+id: Memorandum of Decision
+question: |
+  Upload any memorandum of decision or order by the lower court pertinent to an issue on appeal.
+subquestion: |
+  Including a typed version of any pertinent handwritten or oral endorsement, notation, findings, or order made by the lower court.
+fields:
+  - File: memo_upload
+    datatype: file
+---
+id: Orders upload
+question: |
+  Upload any of the judgment, decree, order, or adjudication in question.
+fields:
+  - File: orders_upload
+    datatype: file
+---
+id: Notice of Appeal
+question: |
+  Upload the Notice of Appeal.
+subquestion: |
+  This may not be on the lower court docket yet but please still include it.
+fields:
+  - File: notice_appeal_upload
     datatype: file
 ---
 objects:
