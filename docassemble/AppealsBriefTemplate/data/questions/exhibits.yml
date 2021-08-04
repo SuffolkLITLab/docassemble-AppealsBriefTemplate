@@ -1,0 +1,141 @@
+---
+include:
+  - docassemble.AssemblyLine:al_package.yml
+---
+objects:
+  - addendum: ALExhibitDocument.using(title="Exhibits", 
+      filename="Exhibits", 
+      enabled=True, 
+      include_exhibit_cover_pages=False )
+---
+objects:
+  - al_user_bundle: ALDocumentBundle.using(elements=[addendum], title="All documents", filename="All_docs" )
+---
+mandatory: True
+code: | 
+  exhibit_sort_and_combine
+  download_screen
+--- 
+event: download_screen
+question: |
+  Your file is ready
+subquestion: |  
+  ${ al_user_bundle.download_list_html() }
+---
+comment: |
+  AlExhibitDocument - containter for everything 
+  ALExhibitList - container for all documents (each category has a list, make it more natural for gathering) 
+  we will create our own AlExhibit list for each group of motions, orders, docket sheet, that is uploaded and mergeinto the ALExhibitDocument 
+  ALExhibit - Document that gets a mention in the table of contents 
+  - each page is its own object underneath it 
+---
+objects: 
+  - motions: ALExhibitList 
+  - docketsheet: ALExhibitList.using(ask_number=True, target_number=1)
+---
+code: | 
+  addendum.exhibits.clear()
+  addendum.exhibits.extend(motions) #combines things from List B into List A 
+  addendum.exhibits.sort(key=lambda y: y.date) #organizes by .date
+  addendum.exhibits.insert(0, docketsheet[0])
+  addendum.exhibits._update_page_numbers()
+  addendum.exhibits._update_labels()
+  exhibit_sort_and_combine = True
+---
+id: motions 3
+question: |
+  You have ${ motions.number_gathered() } motion(s) so far. Do you have another motion you want to upload?
+subquestion: |
+  ${ collapse_template(motions.in_progress_exhibits) }
+field: motions.there_is_another
+buttons:
+  - Finished adding documents: False
+  - Add another document: True
+---
+id: motions 2
+question: |
+  Upload the ${ ordinal(i) } motion
+subquestion: |
+  You will have a chance to upload additional pages for this document later.  
+fields:
+  - Document title: motions[i].title
+    maxlength: 60 # longer might break TOC
+  - Document date: motions[i].date
+    datatype: date
+  - Upload the first exhibit: motions[i].pages
+    datatype: files
+    maximum image size: 1024
+    image upload type: jpeg        
+    accept: |
+      "image/png, image/jpeg, .doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/pdf,.pdf"   
+validation code: |
+  if sum(exhibit.size_in_bytes() for exhibit in motions[i].pages) > (15 * 1024 * 1024):
+    validation_error("Upload a file smaller than 15 MB.")
+  try:
+    pdf_concatenate(motions[i].pages)
+  except:
+    validation_error("Unable to convert this file. Please upload a new one.", field="motions[i].pages")
+  del motions[i].pages.gathered  # docassemble sets this attribute but we want to force gathering additional pages
+---
+id: motions 1
+question: |
+  Do you have any motions that you want to provide to the court?
+fields:
+  - Do you have any documents you want to upload?: motions.there_are_any
+    datatype: yesnoradio
+  - note: |
+      **Okay**. You will have a chance to upload multiple documents. 
+      You can also add additional pages to this document.
+    show if: x.there_are_any
+  - First document title: motions[0].title
+    maxlength: 60 # longer might break TOC
+    show if: motions.there_are_any    
+  - Document date: motions[0].date
+    datatype: date
+    show if: motions.there_are_any 
+  - Upload the first document: motions[0].pages
+    show if: motions.there_are_any    
+    datatype: files
+    maximum image size: 1024
+    image upload type: jpeg        
+    accept: |
+      "image/png, image/jpeg, .doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/pdf,.pdf"   
+validation code: |
+  if motions.there_are_any:
+    if sum(exhibit.size_in_bytes() for exhibit in motions[0].pages) > (15 * 1024 * 1024):
+      validation_error("Upload a file smaller than 15 MB.")
+    try:
+      pdf_concatenate(motions[0].pages)
+    except:
+      validation_error("Unable to convert this file. Please upload a new one.", field="motions[0].pages")
+    del motions[0].pages.gathered  # docassemble sets this attribute but we want to force gathering additional pages
+---
+id: docket sheet 1
+question: |
+  Do you have a docket sheet that you want to provide to the court?
+fields:
+  - Do you have any documents you want to upload?: docketsheet.there_are_any
+    datatype: yesnoradio
+  - note: |
+      **Okay**. You will have a chance to upload multiple documents. 
+      You can also add additional pages to this document.
+    show if: x.there_are_any 
+  - Upload the first document: docketsheet[0].pages
+    show if: docketsheet.there_are_any    
+    datatype: files
+    maximum image size: 1024
+    image upload type: jpeg        
+    accept: |
+      "image/png, image/jpeg, .doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/pdf,.pdf"   
+validation code: |
+  if docketsheet.there_are_any:
+    if sum(exhibit.size_in_bytes() for exhibit in docketsheet[0].pages) > (15 * 1024 * 1024):
+      validation_error("Uploaddocketsheet a file smaller than 15 MB.")
+    try:
+      pdf_concatenate(docketsheet[0].pages)
+    except:
+      validation_error("Unable to convert this file. Please upload a new one.", field="docketsheet[0].pages")
+    del docketsheet[0].pages.gathered  # docassemble sets this attribute but we want to force gathering additional pages
+---
+code: | 
+  docketsheet[0].title = 'Docket Sheet'

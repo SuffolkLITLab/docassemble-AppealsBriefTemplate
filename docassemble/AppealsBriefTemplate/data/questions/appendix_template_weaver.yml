@@ -1,8 +1,6 @@
 ---
 include:
-  - docassemble.AssemblyLine:al_package.yml
-  - docassemble.ALMassachusetts:al_massachusetts.yml
-  - docassemble.MassAccess:massaccess.yml
+  - appeals_brief_template.yml
 ---
 metadata:
   title: |
@@ -46,8 +44,10 @@ code: |
   al_form_type = 'appeal'
 ---
 objects:
-  - users: ALPeopleList.using(there_are_any=True)
-  - other_parties: ALPeopleList
+  - addendum: ALExhibitDocument.using(title="Exhibits", 
+      filename="Exhibits", 
+      enabled=True, 
+      include_exhibit_cover_pages=False )
 ---
 sections:
   - review_appendix_template_weaver: Review your answers
@@ -58,19 +58,20 @@ comment: |
 id: interview_order_appendix_template_weaver
 code: |
   # Set the allowed courts for this interview
-  allowed_courts = interview_metadata["appendix_template_weaver"]["allowed courts"]
-  nav.set_section('review_appendix_template_weaver')
+  #allowed_courts = interview_metadata["appendix_template_weaver"]["allowed courts"]
+  #nav.set_section('review_appendix_template_weaver')
   # Below sets the user_role by asking a question.
   # You can set user_role directly instead to either 'plaintiff' or 'defendant'
 
   Appeals_Brief_Appendix
-  docket_upload
-  complaint_upload
-  brief_attachments_upload
-  arguments_upload
-  memo_upload
-  orders_upload
-  notice_appeal_upload
+  exhibit_sort_and_combine
+  #docket_upload
+  #complaint_upload
+  #brief_attachments_upload
+  #arguments_upload
+  #memo_upload
+  #orders_upload
+  #notice_appeal_upload
 
   set_progress(16.67)
 
@@ -96,64 +97,195 @@ subquestion: |
   The record appendix, or appendix, is the collection of those portions of the trial court's record (e.g., papers, exhibits, and/or transcripts) relevant to the issues, facts, and arguments set forth in your brief.
 continue button field: Appeals_Brief_Appendix
 ---
-id: Docket
-question: |
-  Please upload the lower trial court docket here.
-fields:
-  - File: docket_upload
-    datatype: file
+comment: |
+  AlExhibitDocument - containter for everything 
+  ALExhibitList - container for all documents (each category has a list, make it more natural for gathering) 
+  we will create our own AlExhibit list for each group of motions, orders, docket sheet, that is uploaded and mergeinto the ALExhibitDocument 
+  ALExhibit - Document that gets a mention in the table of contents 
+  - each page is its own object underneath it 
 ---
-id: Complaint or indictment
+objects: 
+  - motions: ALExhibitList 
+  - docketsheet: ALExhibitList.using(ask_number=True, target_number=1)
+---
+code: | 
+  addendum.exhibits.clear()
+  addendum.exhibits.extend(motions) #combines things from List B into List A 
+  addendum.exhibits.sort(key=lambda y: y.date) #organizes by .date
+  addendum.exhibits.insert(0, docketsheet[0])
+  addendum.exhibits._update_page_numbers()
+  addendum.exhibits._update_labels()
+  exhibit_sort_and_combine = True
+---
+id: motions 3
 question: |
-  What was the first thing filed in the lower trial court to start this case?
+  You have ${ motions.number_gathered() } motion(s) so far. Do you have another motion you want to upload?
 subquestion: |
-  If this was a civil case it should be a complaint or petition, while if this is a criminal case it should be an indictment. 
-fields:
-  - File: complaint_upload
-    datatype: file
+  ${ collapse_template(motions.in_progress_exhibits) }
+field: motions.there_is_another
+buttons:
+  - Finished adding documents: False
+  - Add another document: True
 ---
-id: Brief attachments
+id: motions 2
 question: |
-  Upload any documents you filed in the lower trial court to help support your statements of fact.
+  Upload the ${ ordinal(i) } motion
 subquestion: |
-  You can only submit documents that were previously filed in the lower trial court.
+  You will have a chance to upload additional pages for this document later.  
 fields:
-  - File: brief_attachments_upload
-    datatype: file
+  - Document title: motions[i].title
+    maxlength: 60 # longer might break TOC
+  - Document date: motions[i].date
+    datatype: date
+  - Upload the first exhibit: motions[i].pages
+    datatype: files
+    maximum image size: 1024
+    image upload type: jpeg        
+    accept: |
+      "image/png, image/jpeg, .doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/pdf,.pdf"   
+validation code: |
+  if sum(motions.size_in_bytes() for exhibit in motions[i].pages) > (15 * 1024 * 1024):
+    validation_error("Upload a file smaller than 15 MB.")
+  try:
+    pdf_concatenate(motions[i].pages)
+  except:
+    validation_error("Unable to convert this file. Please upload a new one.", field="motions[i].pages")
+  del motions[i].pages.gathered  # docassemble sets this attribute but we want to force gathering additional pages
 ---
-id: Documents making argument on appeal
+id: motions 1
 question: |
-  Upload any documents you filed in the lower trial court to help support your issue which is to be argued on appeal.
+  Do you have any motions that you want to provide to the court?
+fields:
+  - Do you have any documents you want to upload?: motions.there_are_any
+    datatype: yesnoradio
+  - note: |
+      **Okay**. You will have a chance to upload multiple documents. 
+      You can also add additional pages to this document.
+    show if: x.there_are_any
+  - First document title: motions[0].title
+    maxlength: 60 # longer might break TOC
+    show if: motions.there_are_any    
+  - Document date: motions[0].date
+    datatype: date
+    show if: motions.there_are_any 
+  - Upload the first document: motions[0].pages
+    show if: motions.there_are_any    
+    datatype: files
+    maximum image size: 1024
+    image upload type: jpeg        
+    accept: |
+      "image/png, image/jpeg, .doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/pdf,.pdf"   
+validation code: |
+  if motions.there_are_any:
+    if sum(exhibit.size_in_bytes() for exhibit in motions[0].pages) > (15 * 1024 * 1024):
+      validation_error("Upload a file smaller than 15 MB.")
+    try:
+      pdf_concatenate(motions[0].pages)
+    except:
+      validation_error("Unable to convert this file. Please upload a new one.", field="motions[0].pages")
+    del motions[0].pages.gathered  # docassemble sets this attribute but we want to force gathering additional pages
+---
+id: docket sheet 1
+question: |
+  Do you have a docket sheet that you want to provide to the court?
+fields:
+  - Do you have any documents you want to upload?: docketsheet.there_are_any
+    datatype: yesnoradio
+  - note: |
+      **Okay**. You will have a chance to upload multiple documents. 
+      You can also add additional pages to this document.
+    show if: x.there_are_any 
+  - Upload the first document: docketsheet[0].pages
+    show if: docketsheet.there_are_any    
+    datatype: files
+    maximum image size: 1024
+    image upload type: jpeg        
+    accept: |
+      "image/png, image/jpeg, .doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/pdf,.pdf"   
+validation code: |
+  if docketsheet.there_are_any:
+    if sum(exhibit.size_in_bytes() for exhibit in docketsheet[0].pages) > (15 * 1024 * 1024):
+      validation_error("Uploaddocketsheet a file smaller than 15 MB.")
+    try:
+      pdf_concatenate(docketsheet[0].pages)
+    except:
+      validation_error("Unable to convert this file. Please upload a new one.", field="docketsheet[0].pages")
+    del docketsheet[0].pages.gathered  # docassemble sets this attribute but we want to force gathering additional pages
+---
+code: | 
+  docketsheet[0].title = 'Docket Sheet'
+---
+id: docket sheet 2 add pages
+question: |
+  Does "**${ docketsheet[i] }**" have any additional pages?
 subquestion: |
-  You can only submit documents that were previously filed in the lower trial court.
-fields:
-  - File: arguments_upload
-    datatype: file
+  You have uploaded ${ docketsheet[i].pages.num_pages() } pages so far.  
+
+  ${ collapse_template(docketsheet[i].in_progress_template )}
+  
+field: docketsheet[i].pages.there_is_another
+buttons:
+  - Finished adding pages: False
+  - Add another page: True
 ---
-id: Memorandum of Decision
-question: |
-  Upload any memorandum of decision or order by the lower court pertinent to an issue on appeal.
-subquestion: |
-  Including a typed version of any pertinent handwritten or oral endorsement, notation, findings, or order made by the lower court.
-fields:
-  - File: memo_upload
-    datatype: file
----
-id: Orders upload
-question: |
-  Upload any of the judgment, decree, order, or adjudication in question.
-fields:
-  - File: orders_upload
-    datatype: file
----
-id: Notice of Appeal
-question: |
-  Upload the Notice of Appeal.
-subquestion: |
-  This may not be on the lower court docket yet but please still include it.
-fields:
-  - File: notice_appeal_upload
-    datatype: file
+#id: Docket
+#question: |
+#  Please upload the lower trial court docket here.
+#fields:
+#  - File: docket_upload
+#    datatype: file
+#---
+#id: Complaint or indictment
+#question: |
+#  What was the first thing filed in the lower trial court to start this case?
+#subquestion: |
+#  If this was a civil case it should be a complaint or petition, while if this is a criminal case it should be an indictment. 
+#fields:
+#  - File: complaint_upload
+#    datatype: file
+#---
+#id: Brief attachments
+#question: |
+#  Upload any documents you filed in the lower trial court to help support your statements of fact.
+#subquestion: |
+#  You can only submit documents that were previously filed in the lower trial court.
+#fields:
+#  - File: brief_attachments_upload
+#    datatype: file
+#---
+#id: Documents making argument on appeal
+#question: |
+#  Upload any documents you filed in the lower trial court to help support your issue which is to be argued on appeal.
+#subquestion: |
+#  You can only submit documents that were previously filed in the lower trial court.
+#fields:
+#  - File: arguments_upload
+#    datatype: file
+#---
+#id: Memorandum of Decision
+#question: |
+#  Upload any memorandum of decision or order by the lower court pertinent to an issue on appeal.
+#subquestion: |
+#  Including a typed version of any pertinent handwritten or oral endorsement, notation, findings, or order made by the lower court.
+#fields:
+#  - File: memo_upload
+#    datatype: file
+#---
+#id: Orders upload
+#question: |
+#  Upload any of the judgment, decree, order, or adjudication in question.
+#fields:
+#  - File: orders_upload
+#    datatype: file
+#---
+#id: Notice of Appeal
+#question: |
+#  Upload the Notice of Appeal.
+#subquestion: |
+#  This may not be on the lower court docket yet but please still include it.
+#fields:
+#  - File: notice_appeal_upload
+#    datatype: file
 ---
 objects:
   - Post_interview_instructions: ALDocument.using(title="Instructions", filename="appendix_template_weaver_next_steps.docx", enabled=True, has_addendum=False)
@@ -162,8 +294,8 @@ objects:
   - appendix_template_weaver_attachment: ALDocument.using(title="Appendix template labeled", filename="appendix_template_labeled.docx", enabled=True, has_addendum=False)
 ---
 objects:
-  - al_user_bundle: ALDocumentBundle.using(elements=[Post_interview_instructions,appendix_template_weaver_attachment], filename="appendix_template_weaver_package.pdf", title="All forms to download for your records")
-  - al_court_bundle: ALDocumentBundle.using(elements=[appendix_template_weaver_attachment], filename="appendix_template_weaver_package.pdf", title="All forms to download for your records")
+  - al_user_bundle: ALDocumentBundle.using(elements=[Post_interview_instructions,appendix_template_weaver_attachment, addendum], filename="appendix_template_weaver_package.pdf", title="All forms to download for your records")
+  - al_court_bundle: ALDocumentBundle.using(elements=[appendix_template_weaver_attachment, addendum], filename="appendix_template_weaver_package.pdf", title="All forms to download for your records")
 ---
 attachments:
   - name: Post interview instructions
