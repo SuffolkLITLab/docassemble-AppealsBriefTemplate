@@ -4,6 +4,8 @@ include:
   - docassemble.ALMassachusetts:al_massachusetts.yml
   - docassemble.MassAccess:massaccess.yml
   - docassemble.MassAppealsCourt:appeals-basic-questions.yml
+  - appendix_template_weaver.yml
+  - procedural_history.yml
 ---
 code: | 
   appeals_court = all_courts.matching_appeals_court("")
@@ -30,7 +32,7 @@ code: |
       "generated on": "2021-06-09",
       "title": "Appeals Court Brief Template",
       "short title": "Appeals Court Brief Template",
-      "description": "Appeals Court Brief Template",
+      "description": "Use this interview to set up an appeals brief template",
       "original_form": "https://www.mass.gov/service-details/appeals-court-briefs",
       "allowed courts": [
        "Boston Municipal Court",
@@ -91,11 +93,10 @@ code: |
   plaintiffs.gather()
   other_parties.gather()
   users.gather()
-
-  
   set_progress(12.5)
   
   docket_number
+  interview_order_appendix_template_weaver
   method_of_service
 
   set_progress(25.0)
@@ -106,7 +107,19 @@ code: |
 
   
   set_progress(37.5)
+  procedural_history_order_block
 
+  initial_doc
+  if filed_12b: 
+    opposed_12b
+    hearing_on_12b
+    decision_12b
+    reason_appeal_12b
+  if filed_sj: 
+    opposed_sj
+    hearing_on_sj
+    decision_sj
+    reason_appeal_sj
   statement_of_facts
   statement_of_issues
   conclusion_contents
@@ -188,6 +201,69 @@ fields:
   - no label: statement_of_case
     input type: area
     required: False
+---
+id: Procedural History
+question: |
+  Procedural History
+subquestion: |
+  What was the initial document that was filed in the trial court that initiated this case? 
+fields:
+  - no label: initial_doc
+    input type: text
+---
+id: 12b Motion
+question: | #should I write out the kinds of 12(b) motions there are?
+  Was a 12(b) motion filed in regards to this case? 
+yesno: filed_12b
+---
+id: 12b Opposed
+question: |
+  Was this 12(b) motion opposed?
+yesno: opposed_12b
+---
+id: Hearing on 12b motion
+question: |
+  Was there a hearing on this 12(b) motion?
+yesno: hearing_on_12b
+---
+id: Decision on 12b motion
+question: |
+  What was the decision made on the 12(b) motion?
+fields: 
+  - no label: decision_12b
+    datatype: area
+---
+id: 12b reason for appeal
+question: |
+  Is the decision on the 12(b) motion the reason for this appeal?
+yesno: reason_appeal_12b
+---
+id: Motion for summary judgment
+question: | 
+  Was a motion for summary judgment filed in regards to this case? 
+yesno: filed_sj
+---
+id: sj Opposed
+question: |
+  Was this motion for summary judgment opposed?
+yesno: opposed_sj
+---
+id: Hearing on sj
+question: |
+  Was there a hearing on the motion for summary judgment?
+yesno: hearing_on_sj
+---
+id: Decision on sj
+question: |
+  What was the decision made on the motion for summary judgment?
+fields: 
+  - no label: decision_sj
+    datatype: area
+---
+id: sj reason for appeal
+question: |
+  Is the decision on the motion for summary judgment the reason for this appeal?
+yesno: reason_appeal_sj
 ---
 id: Statement of facts
 question: |
@@ -770,8 +846,8 @@ objects:
 
 ---
 objects:
-  - al_user_bundle: ALDocumentBundle.using(elements=[Post_interview_instructions,appeals_brief_template_attachment], filename="appeals_brief_template_package.pdf", title="All forms to download for your records")
-  - al_court_bundle: ALDocumentBundle.using(elements=[appeals_brief_template_attachment], filename="appeals_brief_template_package.pdf", title="All forms to download for your records")
+  - al_user_bundle: ALDocumentBundle.using(elements=[Post_interview_instructions,appeals_brief_template_attachment, appendix_template_weaver_attachment, addendum], filename="appeals_brief_template_package.pdf", title="All forms to download for your records")
+  - al_court_bundle: ALDocumentBundle.using(elements=[appeals_brief_template_attachment, appendix_template_weaver_attachment, addendum], filename="appeals_brief_template_package.pdf", title="All forms to download for your records")
 ---
 attachments:
   - name: Post interview instructions
