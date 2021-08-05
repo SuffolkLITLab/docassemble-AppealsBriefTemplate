@@ -21,6 +21,18 @@ code: |
     hearing_on_ptm
     decision_ptm
     reason_appeal_ptm
+  if trial_held:
+    jury_trial
+    trial_decision
+  if pj_filed:
+    judgment_sought
+    when_pj_served
+    when_pj_filed
+    pj_opposed
+    pj_hearing
+    pj_decision
+  noa_filed
+  cross_appeal
   procedural_history_order_block= True 
 ---
 id: procedural history intro 
@@ -128,3 +140,75 @@ question: |
   Is the decision on the pre-trial motion the reason for this appeal?
 yesno: reason_appeal_ptm
 #make a block that loops to the beginning of this section in case they have another pre-trial motion. 
+---
+id: Trial held
+question: | 
+  Was a trial held in the trial court? 
+yesno: trial_held
+---
+id: Jury trial
+question: | 
+  Was it a jury trial? 
+yesno: jury_trial
+---
+id: Trial decision
+question: |
+  What was the judgment after trial?
+fields: 
+  - no label: trial_decision
+    datatype: area
+---
+id: Post judgment motions
+question: | 
+  Where there any post-judgment motions filed?
+yesno: pj_filed
+---
+id: Pj relief sought
+question: |
+  What was the relief sought, e.g., new trial, jnov, relief from judgment?
+fields: 
+  - no label: judgment_sought
+    datatype: area
+---
+id: Pj served date
+question: |
+  What was the date the post judgment motion was served on the opposing party?
+fields:
+  - no label: when_pj_served
+    datatype: date
+---    
+id: Pj filed date
+question: |
+  What was the date the post judgment motion was filed with the court?
+fields:
+  - no label: when_pj_filed
+    datatype: date
+---
+id: Pj Opposed
+question: |
+  Was this post-judgment motion opposed?
+yesno: pj_opposed
+---
+id: Hearing on pj
+question: |
+  Was there a hearing on the post-judgment motion?
+yesno: pj_hearing
+---
+id: Pj decision
+question: |
+  What was the post-judgment motion decision?
+fields: 
+  - no label: pj_decision
+    datatype: area
+---
+id: Notice of Appeal
+question: |
+  When was the Notice of Appeal filed?
+fields:
+  - no label: noa_filed
+    datatype: date
+---
+id: Cross appeal
+question: |
+  Was it a cross appeal?
+yesno: cross_appeal
