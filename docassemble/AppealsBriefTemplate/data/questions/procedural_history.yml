@@ -15,6 +15,12 @@ code: |
     hearing_on_sj
     decision_sj
     reason_appeal_sj
+  if filed_ptm: 
+    relief_requested_ptm
+    opposed_ptm
+    hearing_on_ptm
+    decision_ptm
+    reason_appeal_ptm
   procedural_history_order_block= True 
 ---
 id: procedural history intro 
@@ -87,3 +93,38 @@ id: sj reason for appeal
 question: |
   Is the decision on the motion for summary judgment the reason for this appeal?
 yesno: reason_appeal_sj
+---
+id: Other pre-trial motions
+question: | 
+  Where there any other pre-trial motions relative to the appeal? 
+yesno: filed_ptm
+---
+id: Pre-trial motion relief requested
+question: |
+  What was the relief requested by the moving party?
+fields: 
+  - no label: relief_requested_ptm
+    datatype: area
+---
+id: ptm Opposed
+question: |
+  Was this pre-trial motion opposed?
+yesno: opposed_ptm
+---
+id: Hearing on ptm
+question: |
+  Was there a hearing on the pre-trial motion?
+yesno: hearing_on_ptm
+---
+id: Decision on ptm
+question: |
+  What was the decision made on the pre-trial motion?
+fields: 
+  - no label: decision_ptm
+    datatype: area
+---
+id: ptm reason for appeal
+question: |
+  Is the decision on the pre-trial motion the reason for this appeal?
+yesno: reason_appeal_ptm
+#make a block that loops to the beginning of this section in case they have another pre-trial motion. 
