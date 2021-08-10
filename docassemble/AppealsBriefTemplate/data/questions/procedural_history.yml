@@ -70,9 +70,10 @@ yesno: hearing_on_12b
 id: Decision on 12b motion
 question: |
   What was the decision made on the 12(b) motion?
-fields: 
-  - no label: decision_12b
-    datatype: area
+field: decision_12b
+choices:
+  - Granted
+  - Denied
 ---
 id: 12b reason for appeal
 question: |
@@ -97,9 +98,10 @@ yesno: hearing_on_sj
 id: Decision on sj
 question: |
   What was the decision made on the motion for summary judgment?
-fields: 
-  - no label: decision_sj
-    datatype: area
+field: decision_sj
+choices:
+  - Granted
+  - Denied
 ---
 id: sj reason for appeal
 question: |
@@ -131,9 +133,10 @@ yesno: hearing_on_ptm
 id: Decision on ptm
 question: |
   What was the decision made on the pre-trial motion?
-fields: 
-  - no label: decision_ptm
-    datatype: area
+field: decision_ptm
+choices:
+  - Granted
+  - Denied
 ---
 id: ptm reason for appeal
 question: |
@@ -154,9 +157,10 @@ yesno: jury_trial
 id: Trial decision
 question: |
   What was the judgment after trial?
-fields: 
-  - no label: trial_decision
-    datatype: area
+field: trial_decision
+choices:
+  - Granted
+  - Denied
 ---
 id: Post judgment motions
 question: | 
@@ -197,9 +201,10 @@ yesno: pj_hearing
 id: Pj decision
 question: |
   What was the post-judgment motion decision?
-fields: 
-  - no label: pj_decision
-    datatype: area
+field: pj_decision
+choices:
+  - Granted
+  - Denied
 ---
 id: Notice of Appeal
 question: |
