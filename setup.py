@@ -52,7 +52,7 @@ setup(name='docassemble.AppealsBriefTemplate',
       license='The MIT License',
       url='https://courtformsonline.org',
       packages=find_namespace_packages(),
-      install_requires=['docassemble.ALMassachusetts>=0.0.7', 'docassemble.AssemblyLine>=2.2.1', 'docassemble.MassAccess>=0.0.3.1'],
+      install_requires=['docassemble.ALMassachusetts>=0.0.7', 'docassemble.AssemblyLine>=2.2.1', 'docassemble.MassAccess>=0.0.3.1', 'docassemble.MassAppealsCourt'],
       zip_safe=False,
       package_data=find_package_data(where='docassemble/AppealsBriefTemplate/', package='docassemble.AppealsBriefTemplate'),
      )
