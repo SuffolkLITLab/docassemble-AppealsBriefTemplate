@@ -55,17 +55,23 @@ fields:
 id: 12b Motion
 question: | #should I write out the kinds of 12(b) motions there are?
   Was a 12(b) motion filed in regards to this case? 
-yesno: filed_12b
+fields:
+  - no label: filed_12b
+    datatype: yesnoradio
 ---
 id: 12b Opposed
 question: |
   Was this 12(b) motion opposed?
-yesno: opposed_12b
+fields:
+  - no label: opposed_12b
+    datatype: yesnoradio
 ---
 id: Hearing on 12b motion
 question: |
   Was there a hearing on this 12(b) motion?
-yesno: hearing_on_12b
+fields:
+  - no label: hearing_on_12b
+    datatype: yesnoradio
 ---
 id: Decision on 12b motion
 question: |
@@ -78,22 +84,30 @@ choices:
 id: 12b reason for appeal
 question: |
   Is the decision on the 12(b) motion the reason for this appeal?
-yesno: reason_appeal_12b
+fields:
+  - no label: reason_appeal_12b
+    datatype: yesnoradio
 ---
 id: Motion for summary judgment
 question: | 
   Was a motion for summary judgment filed in regards to this case? 
-yesno: filed_sj
+fields:
+  - no label: filed_sj
+    datatype: yesnoradio
 ---
 id: sj Opposed
 question: |
   Was this motion for summary judgment opposed?
-yesno: opposed_sj
+fields:
+  - no label: opposed_sj
+    datatype: yesnoradio
 ---
 id: Hearing on sj
 question: |
   Was there a hearing on the motion for summary judgment?
-yesno: hearing_on_sj
+fields:
+  - no label: hearing_on_sj
+    datatype: yesnoradio
 ---
 id: Decision on sj
 question: |
@@ -106,12 +120,16 @@ choices:
 id: sj reason for appeal
 question: |
   Is the decision on the motion for summary judgment the reason for this appeal?
-yesno: reason_appeal_sj
+fields:
+  - no label: reason_appeal_sj
+    datatype: yesnoradio
 ---
 id: Other pre-trial motions
 question: | 
   Where there any other pre-trial motions relative to the appeal? 
-yesno: filed_ptm
+fields:
+  - no label: filed_ptm
+    datatype: yesnoradio
 ---
 id: Pre-trial motion relief requested
 question: |
@@ -123,12 +141,16 @@ fields:
 id: ptm Opposed
 question: |
   Was this pre-trial motion opposed?
-yesno: opposed_ptm
+fields:
+  - no label: opposed_ptm
+    datatype: yesnoradio
 ---
 id: Hearing on ptm
 question: |
   Was there a hearing on the pre-trial motion?
-yesno: hearing_on_ptm
+fields:
+  - no label: hearing_on_ptm
+    datatype: yesnoradio
 ---
 id: Decision on ptm
 question: |
@@ -141,18 +163,24 @@ choices:
 id: ptm reason for appeal
 question: |
   Is the decision on the pre-trial motion the reason for this appeal?
-yesno: reason_appeal_ptm
+fields:
+  - no label: reason_appeal_ptm
+    datatype: yesnoradio
 #make a block that loops to the beginning of this section in case they have another pre-trial motion. 
 ---
 id: Trial held
 question: | 
   Was a trial held in the trial court? 
-yesno: trial_held
+fields:
+  - no label: trial_held
+    datatype: yesnoradio
 ---
 id: Jury trial
 question: | 
   Was it a jury trial? 
-yesno: jury_trial
+fields:
+  - no label: jury_trial
+    datatype: yesnoradio
 ---
 id: Trial decision
 question: |
@@ -165,7 +193,9 @@ choices:
 id: Post judgment motions
 question: | 
   Where there any post-judgment motions filed?
-yesno: pj_filed
+fields:
+  - no label: pj_filed
+    datatype: yesnoradio
 ---
 id: Pj relief sought
 question: |
@@ -191,12 +221,16 @@ fields:
 id: Pj Opposed
 question: |
   Was this post-judgment motion opposed?
-yesno: pj_opposed
+fields:
+  - no label: pj_opposed
+    datatype: yesnoradio
 ---
 id: Hearing on pj
 question: |
   Was there a hearing on the post-judgment motion?
-yesno: pj_hearing
+fields:
+  - no label: pj_hearing
+    datatype: yesnoradio
 ---
 id: Pj decision
 question: |
@@ -216,4 +250,6 @@ fields:
 id: Cross appeal
 question: |
   Was it a cross appeal?
-yesno: cross_appeal
+fields:
+  - no label: cross_appeal
+    datatype: yesnoradio
