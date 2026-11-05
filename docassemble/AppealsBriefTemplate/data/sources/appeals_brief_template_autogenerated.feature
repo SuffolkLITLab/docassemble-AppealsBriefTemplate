@@ -170,7 +170,7 @@ Scenario: Generated scenario
     | users[0].address.unit | Sample answer | |
     | users[0].other_contact_method | Sample answer | |
     | users.there_is_another | False | |
-    | docket_number | Sample answer | |
+    | docket_number | 2026-P-0123 | |
     | motions.there_is_another | False | |
     | x.there_is_another | False | addendum.exhibits.there_is_another |
     | argument_subheading | Sample answer | |
